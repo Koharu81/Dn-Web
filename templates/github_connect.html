@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub 저장소 연동 ⁝ {{ repo }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐙</text></svg>">
+</head>
+<body>
+  <div class="glow-orb-1"></div>
+  <div class="glow-orb-2"></div>
+
+  <header>
+    <a href="/" class="brand">
+      <span>🌐 DevNetwork</span>
+      <span class="brand-badge">GitHub Bridge</span>
+    </a>
+    <div class="nav-actions">
+      <a href="/" class="btn btn-outline">홈으로</a>
+    </div>
+  </header>
+
+  <section class="hero" style="padding-top: 3.5rem;">
+    <div class="hero-pill">
+      <span>🐙</span> GitHub Repository Integration
+    </div>
+    <h1 class="hero-title" style="font-size: 2.75rem;">{{ repo }}</h1>
+    <p class="hero-desc">
+      DevNetwork 디스코드 커뮤니티 전용 포럼 포스트와 GitHub 레포지토리를 연동합니다.
+    </p>
+
+    <!-- Main Connect Card -->
+    <div style="max-width: 680px; margin: 0 auto; background: var(--bg-card); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; text-align: left; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
+      <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>🔗</span> 1-Click GitHub OAuth 연동
+      </h3>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem;">
+        아래 버튼을 클릭하여 GitHub 권한을 승인하면 저장소에 자동으로 실시간 웹훅이 설치되고 이벤트가 바인딩됩니다.
+      </p>
+
+      {% if github_client_id %}
+        <a href="https://github.com/login/oauth/authorize?client_id={{ github_client_id }}&redirect_uri={{ redirect_uri }}&state={{ token }}&scope=repo,admin:repo_hook" class="btn btn-github" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          GitHub 계정으로 즉시 연동하기
+        </a>
+      {% else %}
+        <div style="background: rgba(255, 180, 0, 0.1); border: 1px solid rgba(255, 180, 0, 0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+          <p style="color: #fbbf24; font-size: 0.9rem; font-weight: 600;">
+            ℹ️ GitHub OAuth Client ID가 아직 설정되지 않았습니다.
+          </p>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.3rem;">
+            GitHub Developer Settings에서 OAuth App을 생성한 후 <code>.env</code> 파일의 <code>GITHUB_CLIENT_ID</code> 및 <code>GITHUB_CLIENT_SECRET</code>에 값을 입력하시면 1-클릭 연동이 활성화됩니다.
+          </p>
+          <p style="color: var(--accent-cyan); font-size: 0.85rem; margin-top: 0.5rem; font-family: monospace;">
+            Authorization Callback URL: https://dn.koharu.live/github/callback
+          </p>
+        </div>
+      {% endif %}
+
+      <div style="margin: 2rem 0 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;">
+          ⚙️ 수동 Webhook 등록 가이드
+        </h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+          GitHub 저장소 Settings ➔ Webhooks ➔ Add webhook 에서 아래 정보를 입력해주세요:
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Payload URL</label>
+            <div style="font-family: monospace; background: rgba(0,0,0,0.5); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--accent-cyan);">
+              https://dn.koharu.live/api/webhook/github
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Content type</label>
+            <div style="font-family: monospace; background: rgba(0,0,0,0.5); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-primary);">
+              application/json
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Which events would you like to trigger this webhook?</label>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); padding: 0.25rem 0;">
+              • Issues, Pull requests, Pushes, Releases, Workflow runs, Branch creation
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 DevNetwork. GitHub Webhook Sentinel Engine.</p>
+  </footer>
+</body>
+</html>
