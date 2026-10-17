@@ -15,6 +15,15 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+@app.get("/static/style.css")
+@app.get("/style.css")
+async def get_style_css():
+    css_file = os.path.join(STATIC_DIR, "style.css")
+    if os.path.exists(css_file):
+        with open(css_file, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="text/css")
+    return Response(content="", media_type="text/css")
+
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 DISCORD_BOT_TOKEN = os.getenv("DN_DISCORD_BOT_TOKEN", "")
