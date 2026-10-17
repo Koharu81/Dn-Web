@@ -3,539 +3,222 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DevNetwork ⁝ Global Developer Community</title>
+  <title>DevNetwork - Global Engineering Tech & Community</title>
+  
+  <meta property="og:title" content="DevNetwork Tech News & Articles">
+  <meta property="og:description" content="Connecting developers worldwide across English, Korean, and Japanese. GeekNews style engineering articles and community Q&A.">
+  <meta property="og:image" content="{{ base_url }}/static/banner.png">
+  <meta property="og:type" content="website">
+
   <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="stylesheet" href="/static/style.css">
+  
   <style>
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    /* Feed Navigation Bar */
+    .top-subnav {
+      max-width: 1040px;
+      margin: 1.5rem auto 0;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.75rem;
+    }
+    .feed-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .feed-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .feed-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .feed-tab.active {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+    }
+    .feed-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
 
-:root {
-  --bg-base: #08090D;
-  --bg-surface: #0E1118;
-  --bg-card: rgba(16, 20, 30, 0.7);
-  --bg-card-hover: rgba(24, 30, 46, 0.85);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --border-accent: rgba(99, 102, 241, 0.4);
-  
-  --text-main: #FFFFFF;
-  --text-muted: #94A3B8;
-  --text-dim: #64748B;
-  
-  --accent-indigo: #6366F1;
-  --accent-indigo-hover: #4F46E5;
-  --accent-cyan: #06B6D4;
-  --accent-emerald: #10B981;
-  
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-pill: 9999px;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-base);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-pill);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-body {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
-  background-color: var(--bg-base);
-  color: var(--text-main);
-  min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
-
-.bg-ambient-top {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 1200px;
-  height: 480px;
-  background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.04) 40%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  backdrop-filter: blur(20px);
-  background: rgba(8, 9, 13, 0.82);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0.9rem 2.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  text-decoration: none;
-  color: var(--text-main);
-}
-
-.brand-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-  border: 1px solid var(--border-subtle);
-}
-
-.brand-title {
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
-}
-
-.brand-pill {
-  font-size: 0.72rem;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-pill);
-}
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* Custom Dropdown (No ugly native white popup) */
-.custom-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.custom-dropdown-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-main);
-  padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  outline: none;
-}
-
-.custom-dropdown-btn:hover {
-  border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.custom-dropdown-btn .chevron-icon {
-  color: var(--text-dim);
-  transition: transform 0.2s ease;
-}
-
-.custom-dropdown.open .chevron-icon {
-  transform: rotate(180deg);
-}
-
-.custom-dropdown-menu {
-  display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 175px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 0.35rem;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
-  z-index: 100;
-  backdrop-filter: blur(16px);
-}
-
-.custom-dropdown.open .custom-dropdown-menu {
-  display: flex;
-  flex-direction: column;
-  animation: dropdownFadeIn 0.15s ease-out;
-}
-
-@keyframes dropdownFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.custom-dropdown-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.55rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.825rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-
-.custom-dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
-}
-
-.custom-dropdown-item.active {
-  color: var(--text-main);
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.custom-dropdown-item svg {
-  color: var(--accent-emerald);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.1rem;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: 0.875rem;
-  text-decoration: none;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: inherit;
-}
-
-.btn-primary {
-  background: #FFFFFF;
-  color: #000000;
-}
-
-.btn-primary:hover {
-  background: #E2E8F0;
-  transform: translateY(-1px);
-}
-
-.btn-discord {
-  background: #5865F2;
-  color: #FFFFFF;
-}
-
-.btn-discord:hover {
-  background: #4752C4;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
-}
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-main);
-}
-
-.btn-outline:hover {
-  border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.hero {
-  position: relative;
-  z-index: 10;
-  padding: 3.5rem 2rem 2.5rem;
-  max-width: 1080px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.banner-container {
-  max-width: 580px;
-  margin: 0 auto 2rem;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
-  background: #000;
-}
-
-.banner-img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.hero-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.9rem;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 0.825rem;
-  font-weight: 500;
-  margin-bottom: 1.25rem;
-}
-
-.hero-pill-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-emerald);
-  box-shadow: 0 0 8px var(--accent-emerald);
-}
-
-.hero-title {
-  font-size: 2.75rem;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.2;
-  margin-bottom: 1.25rem;
-  color: var(--text-main);
-}
-
-.hero-desc {
-  font-size: 1.05rem;
-  color: var(--text-muted);
-  max-width: 640px;
-  margin: 0 auto 2.5rem;
-  line-height: 1.7;
-}
-
-.user-strip {
-  max-width: 720px;
-  margin: 0 auto 3rem;
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.user-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
-}
-
-.user-details {
-  text-align: left;
-}
-
-.user-name {
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.user-role-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--accent-emerald);
-  font-weight: 600;
-  margin-top: 0.15rem;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.25rem;
-  max-width: 1100px;
-  margin: 0 auto 5rem;
-  padding: 0 2rem;
-  position: relative;
-  z-index: 10;
-}
-
-.card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  border-color: var(--border-strong);
-  background: var(--bg-card-hover);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.card-icon-box {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-main);
-}
-
-.card-cmd-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  border: 1px solid var(--border-subtle);
-}
-
-.card-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 0.45rem;
-  letter-spacing: -0.01em;
-}
-
-.card-desc {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  flex-grow: 1;
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-}
-
-.modal-box {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  max-width: 440px;
-  width: 100%;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.modal-desc {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin-bottom: 1.5rem;
-}
-
-.lang-option-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  margin-bottom: 1.5rem;
-}
-
-.lang-option-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: var(--text-main);
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.lang-option-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--border-strong);
-  transform: translateX(3px);
-}
-
-footer {
-  border-top: 1px solid var(--border-subtle);
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 0.825rem;
-}
-
-@media (max-width: 768px) {
-  header {
-    padding: 0.9rem 1.25rem;
-  }
-  .hero-title {
-    font-size: 2.25rem;
-  }
-  .features-grid {
-    grid-template-columns: 1fr;
-    padding: 0 1.25rem;
-  }
-}
+    /* GeekNews Style Feed Container */
+    .feed-container {
+      max-width: 1040px;
+      margin: 1.25rem auto 5rem;
+      padding: 0 1.5rem;
+    }
+    .article-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.1rem;
+      padding: 1.15rem 1.25rem;
+      margin-bottom: 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .article-item:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .upvote-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      padding: 0.5rem 0.35rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+      font-family: inherit;
+    }
+    .upvote-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.06);
+    }
+    .upvote-btn.voted {
+      color: var(--accent-emerald);
+      border-color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .upvote-count {
+      font-size: 0.825rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+    }
+    .article-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .article-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .article-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-decoration: none;
+      line-height: 1.4;
+      transition: color 0.15s ease;
+    }
+    .article-title:hover {
+      color: #FFFFFF;
+      text-decoration: underline;
+    }
+    .external-domain {
+      font-size: 0.775rem;
+      color: var(--text-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      text-decoration: none;
+    }
+    .external-domain:hover {
+      color: var(--text-muted);
+    }
+    .article-summary {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 0.65rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .article-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      font-size: 0.775rem;
+      color: var(--text-dim);
+    }
+    .meta-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .meta-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      font-size: 0.725rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tag-badge:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+    .thread-sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.725rem;
+      color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.08);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .article-thumb {
+      width: 100px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      margin-left: 0.5rem;
+      flex-shrink: 0;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1.5rem;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px dashed var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
   </style>
 </head>
 <body>
@@ -546,10 +229,28 @@ footer {
     <a href="/" class="brand">
       <img src="/static/logo.png" alt="DN" class="brand-logo">
       <span class="brand-title">DevNetwork</span>
-      <span class="brand-pill">Global IT</span>
+      <span class="brand-pill">Tech Hub</span>
     </a>
 
+    <!-- Top Navigation Links -->
+    <nav style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
+      <a href="/" class="feed-tab active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        <span>{{ t.nav_articles }}</span>
+      </a>
+      <a href="/qna" class="feed-tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span>{{ t.nav_qna }}</span>
+      </a>
+    </nav>
+
     <div class="nav-actions">
+      <!-- Write Article Button -->
+      <a href="/write" class="btn btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>{{ t.nav_submit }}</span>
+      </a>
+
       <!-- Custom Language Dropdown -->
       <div class="custom-dropdown" id="langDropdown">
         <button class="custom-dropdown-btn" onclick="toggleLangDropdown(event)" type="button">
@@ -571,30 +272,24 @@ footer {
         <div class="custom-dropdown-menu" id="langMenu">
           <div class="custom-dropdown-item {% if lang == 'en' %}active{% endif %}" onclick="selectLanguage('en')">
             <span>English (US)</span>
-            {% if lang == 'en' %}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            {% endif %}
+            {% if lang == 'en' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
           </div>
           <div class="custom-dropdown-item {% if lang == 'ko' %}active{% endif %}" onclick="selectLanguage('ko')">
             <span>한국어 (Korean)</span>
-            {% if lang == 'ko' %}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            {% endif %}
+            {% if lang == 'ko' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
           </div>
           <div class="custom-dropdown-item {% if lang == 'ja' %}active{% endif %}" onclick="selectLanguage('ja')">
             <span>日本語 (Japanese)</span>
-            {% if lang == 'ja' %}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            {% endif %}
+            {% if lang == 'ja' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
           </div>
         </div>
       </div>
 
       {% if user %}
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
           <img src="{{ user.avatar_url }}" alt="avatar" style="width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-          <span style="font-weight: 600; font-size: 0.875rem;">{{ user.username }}</span>
-          <a href="/auth/logout" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Logout</a>
+          <span style="font-weight: 600; font-size: 0.85rem;">{{ user.username }}</span>
+          <a href="/auth/logout" class="btn btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">{{ t.logout }}</a>
         </div>
       {% else %}
         <a href="/auth/discord" class="btn btn-discord">
@@ -607,232 +302,117 @@ footer {
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <!-- Official DevNetwork Banner -->
-    <div class="banner-container">
-      <img src="/static/banner.png" alt="DevNetwork Banner" class="banner-img">
+  <!-- Sub Navigation & Filters -->
+  <div class="top-subnav">
+    <div class="feed-tabs">
+      <a href="/?sort=latest&lang={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'latest' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>{{ t.feed_tab_latest }}</span>
+      </a>
+      <a href="/?sort=popular&lang={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'popular' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        <span>{{ t.feed_tab_popular }}</span>
+      </a>
     </div>
 
-    <div class="hero-pill">
-      <span class="hero-pill-indicator"></span>
-      <span>{{ t.pill_text }}</span>
-    </div>
-
-    <h1 class="hero-title">{{ t.hero_title }}</h1>
-    <p class="hero-desc">{{ t.hero_desc }}</p>
-
-    {% if user %}
-      <div class="user-strip">
-        <div class="user-profile">
-          <img src="{{ user.avatar_url }}" alt="avatar" class="user-avatar">
-          <div class="user-details">
-            <div class="user-name">{{ user.username }}</div>
-            <div class="user-role-tag">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span>
-                {% if user.lang == 'ko' %}Korean Role Assigned
-                {% elif user.lang == 'en' %}English Role Assigned
-                {% elif user.lang == 'ja' %}Japanese Role Assigned
-                {% else %}Language Not Configured
-                {% endif %}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div>
-          <button class="btn btn-outline" onclick="openLangModal()">{{ t.switch_role_lang }}</button>
-        </div>
+    <div class="feed-actions">
+      <!-- Language Filter -->
+      <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; gap: 0.4rem; align-items: center;">
+        <a href="/?sort={{ current_sort }}&lang_filter=all" style="color: {% if current_lang_filter == 'all' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">ALL</a>
+        <span>·</span>
+        <a href="/?sort={{ current_sort }}&lang_filter=ko" style="color: {% if current_lang_filter == 'ko' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">KO</a>
+        <span>·</span>
+        <a href="/?sort={{ current_sort }}&lang_filter=en" style="color: {% if current_lang_filter == 'en' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">EN</a>
+        <span>·</span>
+        <a href="/?sort={{ current_sort }}&lang_filter=ja" style="color: {% if current_lang_filter == 'ja' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">JA</a>
       </div>
-    {% endif %}
-  </section>
-
-  <!-- Features Grid -->
-  <main class="features-grid">
-    <!-- 001 Translate -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m5 8 6 6"></path>
-            <path d="m4 14 6-6 2-3"></path>
-            <path d="M2 5h12"></path>
-            <path d="M7 2h1"></path>
-            <path d="m22 22-5-10-5 10"></path>
-            <path d="M14 18h6"></path>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/translate</div>
-      </div>
-      <div class="card-title">{{ t.f001_title }}</div>
-      <div class="card-desc">{{ t.f001_desc }}</div>
-    </div>
-
-    <!-- 004 Dictionary -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-            <path d="M6 6h10"></path>
-            <path d="M6 10h10"></path>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/dictionary</div>
-      </div>
-      <div class="card-title">{{ t.f004_title }}</div>
-      <div class="card-desc">{{ t.f004_desc }}</div>
-    </div>
-
-    <!-- 017 News -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path>
-            <path d="M18 14h-8"></path>
-            <path d="M15 18h-5"></path>
-            <path d="M10 6h8v4h-8V6Z"></path>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/news</div>
-      </div>
-      <div class="card-title">{{ t.f017_title }}</div>
-      <div class="card-desc">{{ t.f017_desc }}</div>
-    </div>
-
-    <!-- 032 Formatter -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/format</div>
-      </div>
-      <div class="card-title">{{ t.f032_title }}</div>
-      <div class="card-desc">{{ t.f032_desc }}</div>
-    </div>
-
-    <!-- 091 Packages -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m7.5 4.27 9 5.15"></path>
-            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
-            <path d="m3.3 7 8.7 5 8.7-5"></path>
-            <path d="M12 22V12"></path>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/package</div>
-      </div>
-      <div class="card-title">{{ t.f091_title }}</div>
-      <div class="card-desc">{{ t.f091_desc }}</div>
-    </div>
-
-    <!-- 096 Base64 -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/base64</div>
-      </div>
-      <div class="card-title">{{ t.f096_title }}</div>
-      <div class="card-desc">{{ t.f096_desc }}</div>
-    </div>
-
-    <!-- 098 DNS -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
-            <path d="M2 12h20"></path>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/dns</div>
-      </div>
-      <div class="card-title">{{ t.f098_title }}</div>
-      <div class="card-desc">{{ t.f098_desc }}</div>
-    </div>
-
-    <!-- 120 HTTP -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-icon-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/http</div>
-      </div>
-      <div class="card-title">{{ t.f120_title }}</div>
-      <div class="card-desc">{{ t.f120_desc }}</div>
-    </div>
-
-    <!-- 126 GitHub -->
-    <div class="card" style="border-color: rgba(99, 102, 241, 0.25);">
-      <div class="card-header">
-        <div class="card-icon-box" style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.3);">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-          </svg>
-        </div>
-        <div class="card-cmd-badge">/github</div>
-      </div>
-      <div class="card-title">{{ t.f126_title }}</div>
-      <div class="card-desc">{{ t.f126_desc }}</div>
-    </div>
-  </main>
-
-  <!-- Language Selection Modal -->
-  <div class="modal-backdrop" id="langModal" style="display: {% if show_lang_modal %}flex{% else %}none{% endif %};">
-    <div class="modal-box">
-      <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="2" y1="12" x2="22" y2="12"></line>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-        </svg>
-      </div>
-      <h3 class="modal-title">{{ t.modal_title }}</h3>
-      <p class="modal-desc">{{ t.modal_desc }}</p>
-
-      <div class="lang-option-list">
-        <button class="lang-option-btn" onclick="setUserLanguage('en')">
-          <span>English (US)</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-        <button class="lang-option-btn" onclick="setUserLanguage('ko')">
-          <span>한국어 (Korean)</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-        <button class="lang-option-btn" onclick="setUserLanguage('ja')">
-          <span>日本語 (Japanese)</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-      </div>
-
-      <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeLangModal()">{{ t.close }}</button>
     </div>
   </div>
 
+  <!-- Articles Feed -->
+  <main class="feed-container">
+    {% if articles %}
+      {% for art in articles %}
+        <article class="article-item">
+          <!-- Upvote Button -->
+          <button class="upvote-btn" onclick="handleUpvote({{ art.id }}, this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+            <span class="upvote-count" id="upvote-{{ art.id }}">{{ art.upvotes }}</span>
+          </button>
+
+          <!-- Article Body -->
+          <div class="article-content">
+            <div class="article-title-row">
+              <a href="/article/{{ art.id }}" class="article-title">{{ art.title }}</a>
+              {% if art.external_url %}
+                <a href="{{ art.external_url }}" target="_blank" rel="noopener" class="external-domain">
+                  <span>({{ art.external_url | replace('https://', '') | replace('http://', '') | truncate(28) }})</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+              {% endif %}
+            </div>
+
+            {% if art.summary %}
+              <div class="article-summary">{{ art.summary }}</div>
+            {% endif %}
+
+            <div class="article-meta">
+              <span class="meta-author">
+                {% if art.author_avatar %}
+                  <img src="{{ art.author_avatar }}" alt="{{ art.author_name }}" class="meta-avatar">
+                {% endif %}
+                <span>{{ art.author_name }}</span>
+              </span>
+              <span>·</span>
+              <span>{{ art.created_at.strftime('%Y-%m-%d %H:%M') if art.created_at else '' }}</span>
+              <span>·</span>
+              <a href="/article/{{ art.id }}#comments" style="color: inherit; text-decoration: none;">
+                {{ art.comment_count }} {{ t.comments }}
+              </a>
+
+              {% if art.tags %}
+                <span>·</span>
+                {% for tag_item in art.tags.split(',') %}
+                  {% if tag_item.strip() %}
+                    <a href="/?tag={{ tag_item.strip() }}" class="tag-badge">#{{ tag_item.strip() }}</a>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+
+              {% if art.linked_langs %}
+                <span class="thread-sync-badge">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>{{ t.post_threads_linked }}</span>
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Thumbnail if available -->
+          {% if art.image_url %}
+            <img src="{{ art.image_url }}" alt="thumb" class="article-thumb" loading="lazy">
+          {% endif %}
+        </article>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 1rem; color: var(--text-dim);">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <p>{{ t.empty_feed }}</p>
+        <div style="margin-top: 1.25rem;">
+          <a href="/write" class="btn btn-primary">{{ t.nav_submit }}</a>
+        </div>
+      </div>
+    {% endif %}
+  </main>
+
+  <!-- Footer -->
   <footer>
     <p>© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture.</p>
   </footer>
@@ -841,9 +421,7 @@ footer {
     function toggleLangDropdown(event) {
       if (event) event.stopPropagation();
       const dropdown = document.getElementById('langDropdown');
-      if (dropdown) {
-        dropdown.classList.toggle('open');
-      }
+      if (dropdown) dropdown.classList.toggle('open');
     }
 
     function selectLanguage(lang) {
@@ -857,28 +435,22 @@ footer {
       }
     });
 
-    function changeLanguage(lang) {
-      window.location.href = '/?lang=' + lang;
-    }
-
-    function openLangModal() {
-      document.getElementById('langModal').style.display = 'flex';
-    }
-
-    function closeLangModal() {
-      document.getElementById('langModal').style.display = 'none';
-    }
-
-    async function setUserLanguage(lang) {
+    async function handleUpvote(articleId, btn) {
       try {
-        const resp = await fetch('/api/user/language', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lang: lang })
-        });
-        window.location.href = '/?lang=' + lang;
+        const resp = await fetch('/api/article/' + articleId + '/upvote', { method: 'POST' });
+        if (resp.status === 401) {
+          window.location.href = '/auth/discord';
+          return;
+        }
+        const data = await resp.json();
+        document.getElementById('upvote-' + articleId).innerText = data.upvotes;
+        if (data.voted) {
+          btn.classList.add('voted');
+        } else {
+          btn.classList.remove('voted');
+        }
       } catch (e) {
-        window.location.href = '/?lang=' + lang;
+        console.error(e);
       }
     }
   </script>

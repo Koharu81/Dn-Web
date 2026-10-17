@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ article.title }} - DevNetwork</title>
+
+  <!-- Standard Open Graph Fallback -->
+  <meta property="og:title" content="{{ article.title }}">
+  <meta property="og:description" content="{{ article.summary or article.title }}">
+  {% if article.image_url %}
+  <meta property="og:image" content="{{ article.image_url }}">
+  {% else %}
+  <meta property="og:image" content="{{ base_url }}/static/banner.png">
+  {% endif %}
+  <meta property="og:url" content="{{ base_url }}/article/{{ article.id }}">
+  <meta property="og:site_name" content="DevNetwork Global Tech Hub">
+  <meta property="og:type" content="article">
+
+  <!-- Discord Components V2 Link Preview (Component Embed) Specification (2026.10) -->
+  <script id="discord:component-embed" type="application/json">
+  {
+    "components": [
+      {
+        "type": 17,
+        "accent_color": 3907797,
+        "components": [
+          {
+            "type": 10,
+            "content": "### {{ article.title }}\n{{ article.summary or '' }}\n\n✍️ **{{ article.author_name }}** · 🏷️ `{{ article.tags or 'General' }}`"
+          },
+          {% if article.image_url %}
+          {
+            "type": 12,
+            "items": [
+              {
+                "media": {
+                  "url": "{{ article.image_url }}"
+                }
+              }
+            ]
+          },
+          {% endif %}
+          {
+            "type": 14
+          },
+          {
+            "type": 1,
+            "components": [
+              {
+                "type": 2,
+                "style": 5,
+                "label": "Read Article on DevNetwork",
+                "url": "{{ base_url }}/article/{{ article.id }}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="/static/style.css">
+
+  <style>
+    .detail-container {
+      max-width: 880px;
+      margin: 2rem auto 5rem;
+      padding: 0 1.5rem;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 1.5rem;
+      transition: color 0.15s ease;
+    }
+    .back-link:hover {
+      color: var(--text-main);
+    }
+    .article-header {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .article-main-title {
+      font-size: 2.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.3;
+      margin-bottom: 1rem;
+      letter-spacing: -0.025em;
+    }
+    .article-header-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .author-block {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .author-block img {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+    }
+    .featured-banner {
+      width: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 2rem;
+    }
+
+    /* Discord Thread Sync Banner */
+    .discord-threads-card {
+      background: rgba(88, 101, 242, 0.08);
+      border: 1px solid rgba(88, 101, 242, 0.25);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .threads-card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #7983F5;
+    }
+    .threads-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .thread-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .thread-link-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #5865F2;
+    }
+
+    /* Markdown Body */
+    .article-body {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: var(--text-main);
+      margin-bottom: 3.5rem;
+    }
+    .article-body h1, .article-body h2, .article-body h3 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+    .article-body p {
+      margin-bottom: 1.25rem;
+      color: #D1D5DB;
+    }
+    .article-body pre {
+      background: #0B0E14;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.9rem;
+    }
+    .article-body code {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+      font-family: inherit;
+    }
+    .article-body pre code {
+      background: none;
+      padding: 0;
+    }
+    .article-body blockquote {
+      border-left: 3px solid var(--accent-emerald);
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Comments Section */
+    .comments-section {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 2.5rem;
+    }
+    .comments-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .comment-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .comment-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+      font-size: 0.825rem;
+    }
+    .comment-content {
+      font-size: 0.925rem;
+      line-height: 1.6;
+      color: #E2E8F0;
+      white-space: pre-wrap;
+    }
+    .comment-form {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .comment-textarea {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 0.85rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      min-height: 90px;
+      resize: vertical;
+      outline: none;
+    }
+    .comment-textarea:focus {
+      border-color: var(--border-strong);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-ambient-top"></div>
+
+  <!-- Header -->
+  <header>
+    <a href="/" class="brand">
+      <img src="/static/logo.png" alt="DN" class="brand-logo">
+      <span class="brand-title">DevNetwork</span>
+      <span class="brand-pill">Tech Hub</span>
+    </a>
+
+    <nav style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
+      <a href="/" class="feed-tab active"><span>{{ t.nav_articles }}</span></a>
+      <a href="/qna" class="feed-tab"><span>{{ t.nav_qna }}</span></a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="/write" class="btn btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+        <span>{{ t.nav_submit }}</span>
+      </a>
+      {% if user %}
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <img src="{{ user.avatar_url }}" alt="avatar" style="width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+          <span style="font-weight: 600; font-size: 0.85rem;">{{ user.username }}</span>
+          <a href="/auth/logout" class="btn btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">{{ t.logout }}</a>
+        </div>
+      {% else %}
+        <a href="/auth/discord" class="btn btn-discord"><span>{{ t.login_discord }}</span></a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="detail-container">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span>Back to Articles</span>
+    </a>
+
+    <!-- Article Header -->
+    <div class="article-header">
+      <h1 class="article-main-title">{{ article.title }}</h1>
+      <div class="article-header-meta">
+        <span class="author-block">
+          {% if article.author_avatar %}
+            <img src="{{ article.author_avatar }}" alt="{{ article.author_name }}">
+          {% endif %}
+          <span>{{ article.author_name }}</span>
+        </span>
+        <span>·</span>
+        <span>{{ article.created_at.strftime('%Y-%m-%d %H:%M') if article.created_at else '' }}</span>
+        
+        {% if article.external_url %}
+          <span>·</span>
+          <a href="{{ article.external_url }}" target="_blank" rel="noopener" style="color: var(--accent-emerald); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;">
+            <span>Source Link</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Featured Image -->
+    {% if article.image_url %}
+      <img src="{{ article.image_url }}" alt="Featured Banner" class="featured-banner">
+    {% endif %}
+
+    <!-- Discord Thread Links Card -->
+    {% if threads %}
+      <div class="discord-threads-card">
+        <div class="threads-card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028z"/>
+          </svg>
+          <span>Discord Dev-Chat Threads (Components V2 Broadcasted)</span>
+        </div>
+        <div class="threads-links">
+          {% for th in threads %}
+            <a href="https://discord.com/channels/1552469048099471390/{{ th.thread_id }}" target="_blank" rel="noopener" class="thread-link-btn">
+              <span>
+                {% if th.lang == 'ko' %}🇰🇷 한국어 데브챗 스레드
+                {% elif th.lang == 'ja' %}🇯🇵 日本語 開発スレッド
+                {% else %}🇺🇸 English Dev Thread
+                {% endif %}
+              </span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Article Markdown Content -->
+    <div class="article-body">
+      {{ content_html | safe }}
+    </div>
+
+    <!-- Comments -->
+    <section class="comments-section" id="comments">
+      <h3 class="comments-title">{{ t.comments }} ({{ comments | length }})</h3>
+
+      {% if comments %}
+        {% for c in comments %}
+          <div class="comment-card">
+            <div class="comment-header">
+              <span class="author-block">
+                {% if c.author_avatar %}
+                  <img src="{{ c.author_avatar }}" alt="{{ c.author_name }}">
+                {% endif %}
+                <span>{{ c.author_name }}</span>
+              </span>
+              <span style="color: var(--text-dim);">{{ c.created_at.strftime('%Y-%m-%d %H:%M') if c.created_at else '' }}</span>
+            </div>
+            <div class="comment-content">{{ c.content }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">No comments yet.</p>
+      {% endif %}
+
+      <!-- Add Comment Form -->
+      {% if user %}
+        <form action="/api/article/{{ article.id }}/comment" method="POST" class="comment-form">
+          <textarea name="content" class="comment-textarea" placeholder="{{ t.comment_placeholder }}" required></textarea>
+          <div>
+            <button type="submit" class="btn btn-primary">{{ t.add_comment }}</button>
+          </div>
+        </form>
+      {% else %}
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1.25rem; text-align: center;">
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.75rem;">Login with Discord to join technical discussions</p>
+          <a href="/auth/discord" class="btn btn-discord"><span>{{ t.login_discord }}</span></a>
+        </div>
+      {% endif %}
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture.</p>
+  </footer>
+</body>
+</html>

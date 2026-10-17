@@ -1,13 +1,27 @@
 import os
 import aiohttp
 import asyncpg
-from typing import Optional
-from fastapi import FastAPI, Request, Response, HTTPException
+import markdown
+from datetime import datetime
+from typing import Optional, List, Dict, Any
+from fastapi import FastAPI, Request, Response, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-app = FastAPI(title="DevNetwork Global Portal")
+from .db import (
+    db_get_articles, db_get_article, db_create_article, db_save_article_thread,
+    db_get_article_threads, db_toggle_upvote, db_get_article_comments, db_add_article_comment,
+    db_get_qna_posts, db_get_qna_post, db_create_qna_post, db_update_qna_discord_thread,
+    db_get_qna_answers, db_add_qna_answer, db_upsert_discord_forum_thread
+)
+from .discord_sync import (
+    generate_multilang_summaries, discord_create_article_thread,
+    discord_create_forum_post, discord_send_thread_message, discord_fetch_forum_threads,
+    DEV_CHAT_CHANNELS, QNA_FORUM_CHANNELS
+)
+
+app = FastAPI(title="DevNetwork Global Tech Hub")
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -21,9 +35,8 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 DISCORD_BOT_TOKEN = os.getenv("DN_DISCORD_BOT_TOKEN", "")
 DISCORD_CLIENT_ID = os.getenv("DN_CLIENT_ID", "")
 DISCORD_CLIENT_SECRET = os.getenv("DN_CLIENT_SECRET", "")
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
-GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_Zla3NzLDfK6M@ep-odd-lake-b58efh05-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require")
+APP_BASE_URL = os.getenv("APP_BASE_URL", "https://dn-web-mocha.vercel.app")
 
 GUILD_ID = 1552469048099471390
 ROLE_IDS = {
@@ -32,10 +45,135 @@ ROLE_IDS = {
     "ja": 1555128606513168447  # 日本語
 }
 
-# --- Database Helpers ---
+# --- Translations (Zero Emojis, Pure Tech Editorial Style) ---
+TRANSLATIONS = {
+    "en": {
+        "nav_articles": "Articles",
+        "nav_qna": "Q&A Forum",
+        "nav_submit": "Submit Post",
+        "login_discord": "Login with Discord",
+        "logout": "Logout",
+        "feed_tab_latest": "Latest",
+        "feed_tab_popular": "Popular",
+        "all_languages": "All Languages",
+        "filter_tag": "Filter by Tag",
+        "switch_role_lang": "Change Language Role",
+        "modal_title": "Select Primary Community Language",
+        "modal_desc": "Choose your primary language for the DevNetwork community. Your Discord server role will be updated instantly.",
+        "close": "Close",
+        "empty_feed": "No articles published yet. Be the first to share engineering insights!",
+        "post_threads_linked": "Discord Dev-Chat Threads Synchronized",
+        "read_article": "Read Article",
+        "comments": "Comments",
+        "add_comment": "Post Comment",
+        "comment_placeholder": "Share constructive feedback or technical questions...",
+        "submit_article_title": "Submit Engineering Article / Tech News",
+        "submit_article_desc": "Articles are automatically translated into English, Korean, and Japanese, with interactive threads created in Discord developer channels.",
+        "input_title": "Title",
+        "input_external_url": "External URL (Optional, for GeekNews style curation)",
+        "input_tags": "Tags (comma separated, e.g., python, devops, ai)",
+        "input_content": "Content (Markdown supported)",
+        "input_image_url": "Banner / Diagram Image URL (Optional)",
+        "btn_publish": "Publish & Broadcast to Discord",
+        "qna_title": "Community Q&A Forum",
+        "qna_desc": "Two-way synchronized developer forum connecting Web Portal and Discord Language Forums.",
+        "ask_question": "Ask Question",
+        "qna_all": "All",
+        "qna_open": "Open",
+        "qna_solved": "Solved",
+        "qna_empty": "No questions found in this category.",
+        "answers": "Answers",
+        "your_answer": "Your Answer",
+        "submit_answer": "Post Answer to Discord & Web",
+        "view_in_discord": "View in Discord Forum",
+        "sync_discord": "Sync from Discord Forums"
+    },
+    "ko": {
+        "nav_articles": "아티클 / 테크뉴스",
+        "nav_qna": "Q&A 포럼",
+        "nav_submit": "글 작성",
+        "login_discord": "디스코드 로그인",
+        "logout": "로그아웃",
+        "feed_tab_latest": "최신순",
+        "feed_tab_popular": "인기순",
+        "all_languages": "전체 언어",
+        "filter_tag": "태그 필터",
+        "switch_role_lang": "메인 언어 역할 변경",
+        "modal_title": "메인 언어 역할을 선택해주세요",
+        "modal_desc": "DevNetwork 커뮤니티에서 활동하실 주 언어를 선택하시면 디스코드 서버 역할이 자동으로 동기화됩니다.",
+        "close": "닫기",
+        "empty_feed": "등록된 아티클이 없습니다. 첫 엔지니어링 지식을 공유해보세요!",
+        "post_threads_linked": "디스코드 데브챗 3개 국어 스레드 연동 완료",
+        "read_article": "전문 읽기",
+        "comments": "댓글",
+        "add_comment": "댓글 작성",
+        "comment_placeholder": "건설적인 피드백이나 질문을 남겨주세요...",
+        "submit_article_title": "엔지니어링 아티클 / 테크 뉴스 작성",
+        "submit_article_desc": "작성하신 글은 한국어, 영어, 일본어로 실시간 번역 요약되어 각 언어 카테고리의 데브 챗 채널에 전용 스레드로 자동 발행됩니다.",
+        "input_title": "제목",
+        "input_external_url": "외부 링크 (선택사항, 긱뉴스 형태 공유)",
+        "input_tags": "태그 (쉼표로 구분, 예: python, devops, ai)",
+        "input_content": "본문 내용 (마크다운 지원)",
+        "input_image_url": "대표 이미지 / 다이어그램 URL (선택사항)",
+        "btn_publish": "발행 및 디스코드 동기화",
+        "qna_title": "개발자 Q&A 포럼",
+        "qna_desc": "웹 포털과 디스코드 언어별 포럼 채널이 실시간 양방향으로 동기화되는 커뮤니티 공간입니다.",
+        "ask_question": "질문하기",
+        "qna_all": "전체",
+        "qna_open": "미해결",
+        "qna_solved": "해결됨",
+        "qna_empty": "해당 카테고리에 질문이 없습니다.",
+        "answers": "답변",
+        "your_answer": "답변 작성하기",
+        "submit_answer": "답변 등록 (웹 및 디스코드 동시 전송)",
+        "view_in_discord": "디스코드 포럼에서 확인",
+        "sync_discord": "디스코드 포럼 동기화"
+    },
+    "ja": {
+        "nav_articles": "記事・テックニュース",
+        "nav_qna": "Q&Aフォーラム",
+        "nav_submit": "投稿する",
+        "login_discord": "Discordでログイン",
+        "logout": "ログアウト",
+        "feed_tab_latest": "最新順",
+        "feed_tab_popular": "人気順",
+        "all_languages": "すべての言語",
+        "filter_tag": "タグで絞り込み",
+        "switch_role_lang": "メイン言語ロールを変更",
+        "modal_title": "メイン言語ロールを選択してください",
+        "modal_desc": "DevNetworkコミュニティで利用する言語を選択すると、Discordのロールが即座に同期されます。",
+        "close": "閉じる",
+        "empty_feed": "まだ記事が投稿されていません。最初の技術知見を共有しましょう！",
+        "post_threads_linked": "Discord開発チャンネルに3言語スレッド連携完了",
+        "read_article": "記事を読む",
+        "comments": "コメント",
+        "add_comment": "コメントを投稿",
+        "comment_placeholder": "建設的なフィードバックや質問を入力してください...",
+        "submit_article_title": "技術記事・テックニュースの投稿",
+        "submit_article_desc": "投稿された内容は英語・韓国語・日本語に自動要約翻訳され、Discordの各言語開発チャンネルにスレッドとして自動配信されます。",
+        "input_title": "タイトル",
+        "input_external_url": "外部リンク（任意、GeekNews形式のキュレーション）",
+        "input_tags": "タグ（カンマ区切り、例: python, devops, ai）",
+        "input_content": "本文（Markdown対応）",
+        "input_image_url": "アイキャッチ画像 / 図解URL（任意）",
+        "btn_publish": "公開してDiscordに配信",
+        "qna_title": "エンジニア Q&A フォーラム",
+        "qna_desc": "WebポータルとDiscordの各言語フォーラムがリアルタイム双方向同期するコミュニティです。",
+        "ask_question": "質問する",
+        "qna_all": "すべて",
+        "qna_open": "未解決",
+        "qna_solved": "解決済み",
+        "qna_empty": "該当する質問は見つかりませんでした。",
+        "answers": "回答",
+        "your_answer": "回答を投稿",
+        "submit_answer": "回答を送信（WebおよびDiscordに反映）",
+        "view_in_discord": "Discordフォーラムで確認",
+        "sync_discord": "Discordフォーラムと同期"
+    }
+}
+
+# --- Discord Role / Language Sync ---
 async def db_get_user_lang(user_id: int) -> Optional[str]:
-    if not DATABASE_URL:
-        return None
     try:
         conn = await asyncpg.connect(DATABASE_URL)
         row = await conn.fetchrow("SELECT lang FROM user_languages WHERE user_id = $1", int(user_id))
@@ -45,8 +183,6 @@ async def db_get_user_lang(user_id: int) -> Optional[str]:
         return None
 
 async def db_set_user_lang(user_id: int, lang: str):
-    if not DATABASE_URL:
-        return
     try:
         conn = await asyncpg.connect(DATABASE_URL)
         await conn.execute("""
@@ -58,175 +194,424 @@ async def db_set_user_lang(user_id: int, lang: str):
     except Exception:
         pass
 
-# --- Translations (Clean, Zero Emojis) ---
-TRANSLATIONS = {
-    "en": {
-        "login_discord": "Login with Discord",
-        "pill_text": "DevNetwork Global Engineering Portal",
-        "hero_title": "Next-Gen Engineering Hub\nfor Global Developers",
-        "hero_desc": "Connecting developers worldwide across English, Korean, and Japanese. Built on strict Discord Components V2 specifications and enterprise GitHub automation infrastructure.",
-        "switch_role_lang": "Change Language Role",
-        "modal_title": "Select Primary Community Language",
-        "modal_desc": "Choose your primary language for the DevNetwork community. Your Discord server role will be updated instantly.",
-        "close": "Close",
-        "f001_title": "Real-time Message Translation",
-        "f001_desc": "Instant bidirectional AI translation between English, Korean, and Japanese with context menu support.",
-        "f004_title": "Tech Dictionary",
-        "f004_desc": "Real-time DuckDuckGo search combined with AI to deliver concise 3-language technical definitions and snippets.",
-        "f017_title": "Global News Router",
-        "f017_desc": "Curated RSS feeds from Hacker News, GeekNews, and Zenn translated and routed to dedicated language channels.",
-        "f032_title": "Code Auto Formatter",
-        "f032_desc": "Auto-detect and reformat messy code snippets with Black (Python) and Prettier style, including Diff inspection.",
-        "f091_title": "Package Version Inspector",
-        "f091_desc": "Instant lookup of latest stable versions, licenses, and weekly downloads for npm, pip, cargo, and go modules.",
-        "f096_title": "Base64 Encoder / Decoder",
-        "f096_desc": "Seamless two-way Base64 encoding and decoding with one-tap clipboard copy blocks.",
-        "f098_title": "DNS & Domain Lookup",
-        "f098_desc": "Live DNS record verification (A, CNAME, MX, NS) and GeoIP hosting infrastructure diagnostics.",
-        "f120_title": "HTTP Request Tester",
-        "f120_desc": "Direct lightweight HTTP GET/POST simulation from the bot server to inspect headers and response bodies.",
-        "f126_title": "GitHub Repository Bridge",
-        "f126_desc": "Dedicated forum threads with persistent toggle panels, member invitations, and automated weekly security audits."
-    },
-    "ko": {
-        "login_discord": "디스코드 로그인",
-        "pill_text": "DevNetwork 글로벌 개발자 포털 & 봇 관제 센터",
-        "hero_title": "글로벌 IT 커뮤니티를 위한\n차세대 엔지니어링 허브",
-        "hero_desc": "한국어, 영어, 일본어 3개 언어로 상호 연결되는 글로벌 개발자 네트워크. 엄격한 Components V2 아키텍처와 엔터프라이즈 수준의 GitHub & DevOps 인프라를 제공합니다.",
-        "switch_role_lang": "메인 언어 역할 변경",
-        "modal_title": "메인 언어 역할을 선택해주세요",
-        "modal_desc": "DevNetwork 커뮤니티에서 활동하실 주 언어를 선택하시면 디스코드 서버 역할이 자동으로 동기화됩니다.",
-        "close": "닫기",
-        "f001_title": "실시간 메시지 번역",
-        "f001_desc": "메시지 입력 또는 우클릭 컨텍스트 메뉴로 한국어, 영어, 일본어 상호 실시간 AI 번역을 제공합니다.",
-        "f004_title": "개발자 용어 사전",
-        "f004_desc": "DuckDuckGo 실시간 웹 검색과 결합하여 IT/개발 전문 용어의 3개 국어 표준 정의와 실무 예제를 제공합니다.",
-        "f017_title": "글로벌 뉴스 채널 라우팅",
-        "f017_desc": "GeekNews, Hacker News, Zenn 등 글로벌 테크 RSS 피드를 각 언어별 채널로 자동 번역하여 정기 발행합니다.",
-        "f032_title": "코드 블록 자동 포맷터",
-        "f032_desc": "들여쓰기가 깨진 코드를 감지하여 Black(Python) 및 Prettier 스타일로 완벽하게 재정렬하고 Diff를 비교합니다.",
-        "f091_title": "패키지 버전 조회",
-        "f091_desc": "npm, pip, cargo, go 생태계 라이브러리의 최신 안정화 버전, 라이선스, 다운로드 지표를 실시간 검사합니다.",
-        "f096_title": "Base64 인코더 / 디코더",
-        "f096_desc": "텍스트 및 데이터 스니펫을 원클릭으로 Base64 상호 변환하고 클립보드 복사 블록을 지원합니다.",
-        "f098_title": "DNS & WHOIS 조회",
-        "f098_desc": "글로벌 도메인의 A, CNAME, MX 레코드와 네임서버 전파 상태 및 GeoIP 인프라 위치를 진단합니다.",
-        "f120_title": "HTTP 요청 모의 테스트",
-        "f120_desc": "봇 서버에서 직접 엔드포인트로 경량 HTTP GET/POST 테스트 요청을 전송하여 상태 코드와 헤더를 점검합니다.",
-        "f126_title": "GitHub 저장소 포럼 연동",
-        "f126_desc": "국가별 전용 포럼 포스트 생성, 실시간 알림 토글 패널 제어 및 1주일 주기 정기 보안 리포트를 발송합니다."
-    },
-    "ja": {
-        "login_discord": "Discordでログイン",
-        "pill_text": "DevNetwork グローバル開発者ポータル ＆ Bot管制センター",
-        "hero_title": "世界中のエンジニアを繋ぐ\n次世代開発者コミュニティ",
-        "hero_desc": "日本語、韓国語、英語の3言語で繋がるグローバルITコミュニティ。Discord Components V2の最新仕様とGitHub・DevOps自動化インフラを提供します。",
-        "switch_role_lang": "メイン言語ロールの変更",
-        "modal_title": "メイン言語ロールを選択してください",
-        "modal_desc": "DevNetworkコミュニティで利用する主言語を選択してください。Discordサーバーのロールが自動的に同期されます。",
-        "close": "閉じる",
-        "f001_title": "リアルタイムメッセージ翻訳",
-        "f001_desc": "日本語・韓国語・英語の相互翻訳を即座に実行。メッセージ右クリックのコンテキストメニューにも対応。",
-        "f004_title": "開発者用語辞典",
-        "f004_desc": "DuckDuckGoリアルタイム検索とAI要約を融合し、IT専門用語の3言語定義および実務コード例を案内。",
-        "f017_title": "グローバルニュース自動配信",
-        "f017_desc": "Zenn、Hacker News、GeekNews等の技術RSSを各言語チャンネルへ自動翻訳ルーティング配信。",
-        "f032_title": "コード自動フォーマッター",
-        "f032_desc": "崩れたインデントを検知し、Black(Python)やPrettier形式で綺麗に再整列。差分(Diff)比較も可能。",
-        "f091_title": "パッケージバージョン照会",
-        "f091_desc": "npm、pip、cargo、go各エコシステムの最新安定バージョン、ライセンス、ダウンロード数を即座に確認。",
-        "f096_title": "Base64 エンコーダー / デコーダー",
-        "f096_desc": "テキストやデータをBase64へ即座に相互変換し、ワンタップコピー用ブロックを提供。",
-        "f098_title": "DNS＆ドメイン照会",
-        "f098_desc": "A、CNAME、MX、NSレコードの伝播状況およびホ스ティングインフラのGeoIP詳細を診断。",
-        "f120_title": "HTTPリクエスト模擬テスト",
-        "f120_desc": "Botサーバーから対象APIエンドポイントへ直接テストリクエストを送信し、ステータスコードを診断。",
-        "f126_title": "GitHubリポジトリ連動",
-        "f126_desc": "国別フォーラム投稿の自動生成、常設トグルパネル、メンバー招待、および週次セキュリティレポート配信。"
+async def sync_discord_role(user_id: int, new_lang: str) -> bool:
+    if not DISCORD_BOT_TOKEN or not GUILD_ID:
+        return False
+    target_role_id = ROLE_IDS.get(new_lang)
+    if not target_role_id:
+        return False
+
+    url_base = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}"
+    headers = {
+        "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+        "Content-Type": "application/json"
     }
-}
 
-# --- Static Asset Direct Route Fallbacks ---
-@app.get("/static/style.css")
-@app.get("/style.css")
-async def get_style_css():
-    css_file = os.path.join(STATIC_DIR, "style.css")
-    if os.path.exists(css_file):
-        with open(css_file, "r", encoding="utf-8") as f:
-            return Response(content=f.read(), media_type="text/css")
-    return Response(content="", media_type="text/css")
+    try:
+        async with aiohttp.ClientSession() as session:
+            # 1. Fetch current member roles
+            async with session.get(url_base, headers=headers) as resp:
+                if resp.status != 200:
+                    return False
+                member_data = await resp.json()
+                current_roles = set(int(r) for r in member_data.get("roles", []))
 
-@app.get("/static/{filename}")
-async def get_static_asset(filename: str):
-    file_path = os.path.join(STATIC_DIR, filename)
-    if os.path.exists(file_path):
-        media_type = "image/png" if filename.endswith(".png") else "application/octet-stream"
-        return FileResponse(file_path, media_type=media_type)
-    raise HTTPException(status_code=404, detail="File not found")
+            # 2. Adjust roles
+            for l_code, r_id in ROLE_IDS.items():
+                if l_code == new_lang:
+                    current_roles.add(r_id)
+                else:
+                    current_roles.discard(r_id)
 
-# --- App Routes ---
+            # 3. Update member roles
+            patch_data = {"roles": list(current_roles)}
+            async with session.patch(url_base, headers=headers, json=patch_data) as patch_resp:
+                return patch_resp.status in (200, 204)
+    except Exception:
+        return False
+
+# --- Helper to extract user session ---
+def get_session_user(request: Request) -> Optional[Dict[str, Any]]:
+    uid = request.cookies.get("dn_user_id")
+    uname = request.cookies.get("dn_user_name")
+    uavatar = request.cookies.get("dn_user_avatar")
+    ulang = request.cookies.get("dn_user_lang")
+    if uid and uname:
+        return {
+            "id": uid,
+            "username": uname,
+            "avatar_url": uavatar or f"https://cdn.discordapp.com/embed/avatars/{int(uid) % 5}.png",
+            "lang": ulang or "en"
+        }
+    return None
+
+def resolve_lang(request: Request, user: Optional[Dict[str, Any]]) -> str:
+    lang_param = request.query_params.get("lang")
+    if lang_param in ("en", "ko", "ja"):
+        return lang_param
+    cookie_lang = request.cookies.get("dn_lang")
+    if cookie_lang in ("en", "ko", "ja"):
+        return cookie_lang
+    if user and user.get("lang") in ("en", "ko", "ja"):
+        return user["lang"]
+    return "en"
+
+
+# ==========================================
+# 1. ARTICLES / GEEKNEWS FEED
+# ==========================================
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    query_lang = request.query_params.get("lang")
-    user_session = request.cookies.get("dn_user_id")
+async def articles_feed(
+    request: Request,
+    sort: str = "latest",
+    tag: Optional[str] = None,
+    lang_filter: Optional[str] = None
+):
+    user = get_session_user(request)
+    ui_lang = resolve_lang(request, user)
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
 
-    user_info = None
-    show_modal = False
-    active_lang = query_lang
-
-    if user_session:
-        user_id = int(user_session)
-        db_lang = await db_get_user_lang(user_id)
-        cookie_lang = request.cookies.get("dn_user_lang")
-        saved_lang = db_lang or cookie_lang
-
-        username = request.cookies.get("dn_username", "Developer")
-        avatar = request.cookies.get("dn_avatar", "https://cdn.discordapp.com/embed/avatars/0.png")
-
-        user_info = {
-            "id": user_id,
-            "username": username,
-            "avatar_url": avatar,
-            "lang": saved_lang
-        }
-
-        if not active_lang:
-            active_lang = saved_lang
-        if not saved_lang:
-            show_modal = True
-
-    # 기본 언어는 영어 (English)
-    if not active_lang or active_lang not in TRANSLATIONS:
-        active_lang = "en"
-
-    response = templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={
-            "lang": active_lang,
-            "user": user_info,
-            "show_lang_modal": show_modal,
-            "t": TRANSLATIONS[active_lang]
-        }
-    )
-    response.set_cookie("dn_lang", active_lang, max_age=86400 * 30)
+    articles = await db_get_articles(sort=sort, tag=tag, lang=lang_filter)
+    
+    response = templates.TemplateResponse("index.html", {
+        "request": request,
+        "articles": articles,
+        "user": user,
+        "lang": ui_lang,
+        "t": t,
+        "current_sort": sort,
+        "current_tag": tag or "",
+        "current_lang_filter": lang_filter or "all",
+        "active_tab": "articles",
+        "base_url": APP_BASE_URL
+    })
+    response.set_cookie(key="dn_lang", value=ui_lang, max_age=31536000, httponly=False)
     return response
 
-@app.get("/auth/discord")
-async def discord_login():
-    redirect_uri = "https://dn.koharu.live/auth/discord/callback"
-    auth_url = (
-        f"https://discord.com/api/oauth2/authorize?client_id={DISCORD_CLIENT_ID}"
-        f"&redirect_uri={redirect_uri}&response_type=code&scope=identify%20guilds"
+@app.get("/write", response_class=HTMLResponse)
+async def write_article_page(request: Request):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+    
+    ui_lang = resolve_lang(request, user)
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+    
+    return templates.TemplateResponse("write.html", {
+        "request": request,
+        "user": user,
+        "lang": ui_lang,
+        "t": t,
+        "active_tab": "submit",
+        "base_url": APP_BASE_URL
+    })
+
+@app.post("/api/article/create")
+async def create_article(
+    request: Request,
+    title: str = Form(...),
+    content: str = Form(...),
+    external_url: Optional[str] = Form(""),
+    tags: Optional[str] = Form(""),
+    image_url: Optional[str] = Form("")
+):
+    user = get_session_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    ui_lang = resolve_lang(request, user)
+    
+    # 1. Generate multilang titles and summaries
+    summaries = await generate_multilang_summaries(title, content)
+    primary_summary = summaries.get(ui_lang, {}).get("summary", content[:300])
+
+    # 2. Insert into DB
+    article_id = await db_create_article(
+        author_id=user["id"],
+        author_name=user["username"],
+        author_avatar=user["avatar_url"],
+        title=title,
+        content=content,
+        summary=primary_summary,
+        external_url=external_url or "",
+        image_url=image_url or "",
+        tags=tags or "",
+        lang=ui_lang
     )
-    return RedirectResponse(auth_url)
 
-@app.get("/auth/discord/callback")
-async def discord_callback(code: Optional[str] = None):
-    if not code:
-        raise HTTPException(status_code=400, detail="Missing authorization code")
+    # 3. Create Discord Threads in all 3 language developer channels concurrently
+    thread_tasks = []
+    for l_code in ("ko", "en", "ja"):
+        loc_title = summaries.get(l_code, {}).get("title", title)
+        loc_summary = summaries.get(l_code, {}).get("summary", primary_summary)
+        thread_tasks.append(
+            discord_create_article_thread(
+                lang=l_code,
+                title=loc_title,
+                summary=loc_summary,
+                article_id=article_id,
+                image_url=image_url
+            )
+        )
+    
+    results = await asyncio.gather(*thread_tasks, return_exceptions=True)
+    for res in results:
+        if isinstance(res, dict) and res.get("thread_id"):
+            await db_save_article_thread(
+                article_id=article_id,
+                lang=res["lang"],
+                channel_id=res["channel_id"],
+                thread_id=res["thread_id"],
+                message_id=res.get("message_id", "")
+            )
 
-    redirect_uri = "https://dn.koharu.live/auth/discord/callback"
+    return RedirectResponse(url=f"/article/{article_id}", status_code=303)
+
+@app.get("/article/{article_id}", response_class=HTMLResponse)
+async def article_detail(request: Request, article_id: int):
+    user = get_session_user(request)
+    ui_lang = resolve_lang(request, user)
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+
+    article = await db_get_article(article_id)
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    threads = await db_get_article_threads(article_id)
+    comments = await db_get_article_comments(article_id)
+    content_html = markdown.markdown(article["content"], extensions=["fenced_code", "tables"])
+
+    return templates.TemplateResponse("article_detail.html", {
+        "request": request,
+        "article": article,
+        "content_html": content_html,
+        "threads": threads,
+        "comments": comments,
+        "user": user,
+        "lang": ui_lang,
+        "t": t,
+        "base_url": APP_BASE_URL,
+        "active_tab": "articles"
+    })
+
+@app.post("/api/article/{article_id}/upvote")
+async def toggle_article_upvote(request: Request, article_id: int):
+    user = get_session_user(request)
+    if not user:
+        return JSONResponse({"error": "Login required"}, status_code=401)
+    
+    res = await db_toggle_upvote(article_id, user["id"])
+    return JSONResponse(res)
+
+@app.post("/api/article/{article_id}/comment")
+async def add_article_comment(
+    request: Request,
+    article_id: int,
+    content: str = Form(...)
+):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+    
+    if content.strip():
+        await db_add_article_comment(
+            article_id=article_id,
+            author_id=user["id"],
+            author_name=user["username"],
+            author_avatar=user["avatar_url"],
+            content=content.strip()
+        )
+    return RedirectResponse(url=f"/article/{article_id}", status_code=303)
+
+
+# ==========================================
+# 2. Q&A FORUM (Web <-> Discord Forum Sync)
+# ==========================================
+@app.get("/qna", response_class=HTMLResponse)
+async def qna_feed(
+    request: Request,
+    lang_filter: Optional[str] = None,
+    solved_filter: Optional[str] = None
+):
+    user = get_session_user(request)
+    ui_lang = resolve_lang(request, user)
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+
+    is_solved = None
+    if solved_filter == "solved":
+        is_solved = True
+    elif solved_filter == "open":
+        is_solved = False
+
+    posts = await db_get_qna_posts(lang=lang_filter, solved=is_solved)
+
+    return templates.TemplateResponse("qna_list.html", {
+        "request": request,
+        "posts": posts,
+        "user": user,
+        "lang": ui_lang,
+        "t": t,
+        "current_lang_filter": lang_filter or "all",
+        "current_solved_filter": solved_filter or "all",
+        "active_tab": "qna",
+        "base_url": APP_BASE_URL
+    })
+
+@app.get("/qna/new", response_class=HTMLResponse)
+async def new_qna_page(request: Request):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+
+    ui_lang = resolve_lang(request, user)
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+
+    return templates.TemplateResponse("qna_new.html", {
+        "request": request,
+        "user": user,
+        "lang": ui_lang,
+        "t": t,
+        "active_tab": "qna",
+        "base_url": APP_BASE_URL
+    })
+
+@app.post("/api/qna/create")
+async def create_qna(
+    request: Request,
+    title: str = Form(...),
+    content: str = Form(...),
+    post_lang: str = Form("en"),
+    image_url: Optional[str] = Form("")
+):
+    user = get_session_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    forum_channel_id = str(QNA_FORUM_CHANNELS.get(post_lang, QNA_FORUM_CHANNELS["en"]))
+
+    # 1. Insert into DB first
+    post_id = await db_create_qna_post(
+        author_id=user["id"],
+        author_name=user["username"],
+        author_avatar=user["avatar_url"],
+        lang=post_lang,
+        title=title,
+        content=content,
+        image_url=image_url or "",
+        discord_channel_id=forum_channel_id,
+        discord_thread_id=""
+    )
+
+    # 2. Create Forum Post in Discord
+    thread_id = await discord_create_forum_post(
+        lang=post_lang,
+        title=title,
+        content=content,
+        post_id=post_id,
+        image_url=image_url
+    )
+    if thread_id:
+        await db_update_qna_discord_thread(post_id, thread_id)
+
+    return RedirectResponse(url=f"/qna/{post_id}", status_code=303)
+
+@app.get("/qna/{post_id}", response_class=HTMLResponse)
+async def qna_detail(request: Request, post_id: int):
+    user = get_session_user(request)
+    ui_lang = resolve_lang(request, user)
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+
+    post = await db_get_qna_post(post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Q&A Post not found")
+
+    answers = await db_get_qna_answers(post_id)
+    content_html = markdown.markdown(post["content"], extensions=["fenced_code", "tables"])
+
+    return templates.TemplateResponse("qna_detail.html", {
+        "request": request,
+        "post": post,
+        "content_html": content_html,
+        "answers": answers,
+        "user": user,
+        "lang": ui_lang,
+        "t": t,
+        "active_tab": "qna",
+        "base_url": APP_BASE_URL
+    })
+
+@app.post("/api/qna/{post_id}/answer")
+async def add_qna_answer(
+    request: Request,
+    post_id: int,
+    content: str = Form(...)
+):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+
+    post = await db_get_qna_post(post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Q&A Post not found")
+
+    discord_msg_id = None
+    if post.get("discord_thread_id"):
+        discord_msg_id = await discord_send_thread_message(
+            thread_id=post["discord_thread_id"],
+            author_name=user["username"],
+            content=content.strip()
+        )
+
+    await db_add_qna_answer(
+        post_id=post_id,
+        author_id=user["id"],
+        author_name=user["username"],
+        author_avatar=user["avatar_url"],
+        content=content.strip(),
+        discord_message_id=discord_msg_id
+    )
+    return RedirectResponse(url=f"/qna/{post_id}", status_code=303)
+
+@app.get("/api/qna/sync")
+async def trigger_discord_qna_sync():
+    """Fetches threads from Discord forum channels and syncs them into Neon DB."""
+    synced_count = 0
+    for lang, forum_id in QNA_FORUM_CHANNELS.items():
+        threads = await discord_fetch_forum_threads(forum_id)
+        for th in threads:
+            thread_id = th["id"]
+            name = th.get("name", "Discord Q&A Discussion")
+            owner_id = th.get("owner_id", "0")
+            created_at = datetime.fromisoformat(th["thread_metadata"]["create_timestamp"].replace("Z", "+00:00")) if "create_timestamp" in th.get("thread_metadata", {}) else datetime.utcnow()
+            
+            await db_upsert_discord_forum_thread(
+                lang=lang,
+                channel_id=str(forum_id),
+                thread_id=str(thread_id),
+                name=name,
+                author_id=str(owner_id),
+                author_name="Discord Member",
+                author_avatar="",
+                created_at=created_at
+            )
+            synced_count += 1
+            
+    return JSONResponse({"status": "ok", "synced_threads": synced_count})
+
+
+# ==========================================
+# 3. OAUTH2 & ROLE LANGUAGE SWITCHING
+# ==========================================
+@app.get("/auth/discord")
+async def auth_discord():
+    redirect_uri = f"{APP_BASE_URL}/auth/callback"
+    scope = "identify guilds.members.read"
+    url = f"https://discord.com/api/oauth2/authorize?client_id={DISCORD_CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
+    return RedirectResponse(url=url)
+
+@app.get("/auth/callback")
+async def auth_callback(code: str, request: Request):
+    redirect_uri = f"{APP_BASE_URL}/auth/callback"
     token_url = "https://discord.com/api/oauth2/token"
     data = {
         "client_id": DISCORD_CLIENT_ID,
@@ -235,126 +620,70 @@ async def discord_callback(code: Optional[str] = None):
         "code": code,
         "redirect_uri": redirect_uri
     }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(token_url, data=data) as resp:
+        async with session.post(token_url, data=data, headers=headers) as resp:
             if resp.status != 200:
-                return RedirectResponse("/?error=token_exchange_failed")
-            token_data = await resp.json()
-            access_token = token_data.get("access_token")
+                raise HTTPException(status_code=400, detail="Failed to retrieve token from Discord")
+            token_json = await resp.json()
+            access_token = token_json.get("access_token")
 
-        headers = {"Authorization": f"Bearer {access_token}"}
-        async with session.get("https://discord.com/api/users/@me", headers=headers) as resp:
-            if resp.status != 200:
-                return RedirectResponse("/?error=user_fetch_failed")
-            user_data = await resp.json()
+        user_headers = {"Authorization": f"Bearer {access_token}"}
+        async with session.get("https://discord.com/api/v10/users/@me", headers=user_headers) as u_resp:
+            if u_resp.status != 200:
+                raise HTTPException(status_code=400, detail="Failed to fetch user data")
+            user_data = await u_resp.json()
 
-    user_id = int(user_data["id"])
-    username = user_data["username"]
-    avatar_hash = user_data.get("avatar")
-    avatar_url = (
-        f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png"
-        if avatar_hash else "https://cdn.discordapp.com/embed/avatars/0.png"
-    )
+        member_headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+        user_id = user_data["id"]
+        role_detected_lang = None
+        async with session.get(f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}", headers=member_headers) as m_resp:
+            if m_resp.status == 200:
+                m_data = await m_resp.json()
+                user_roles = [int(r) for r in m_data.get("roles", [])]
+                for l_code, r_id in ROLE_IDS.items():
+                    if r_id in user_roles:
+                        role_detected_lang = l_code
+                        break
 
-    detected_lang = None
-    if DISCORD_BOT_TOKEN:
-        bot_headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}", headers=bot_headers) as mresp:
-                if mresp.status == 200:
-                    member_data = await mresp.json()
-                    roles = member_data.get("roles", [])
-                    for l_code, r_id in ROLE_IDS.items():
-                        if str(r_id) in roles or r_id in roles:
-                            detected_lang = l_code
-                            break
+    db_lang = await db_get_user_lang(int(user_id))
+    final_lang = role_detected_lang or db_lang or "en"
+    await db_set_user_lang(int(user_id), final_lang)
 
-    # DB에 저장된 언어 확인 및 동기화
-    db_lang = await db_get_user_lang(user_id)
-    final_lang = detected_lang or db_lang
+    response = RedirectResponse(url=f"/?lang={final_lang}")
+    response.set_cookie(key="dn_user_id", value=user_data["id"], max_age=86400*30, httponly=False)
+    response.set_cookie(key="dn_user_name", value=user_data["username"], max_age=86400*30, httponly=False)
+    avatar_url = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{user_data['avatar']}.png" if user_data.get("avatar") else ""
+    response.set_cookie(key="dn_user_avatar", value=avatar_url, max_age=86400*30, httponly=False)
+    response.set_cookie(key="dn_user_lang", value=final_lang, max_age=86400*30, httponly=False)
+    response.set_cookie(key="dn_lang", value=final_lang, max_age=86400*30, httponly=False)
+    return response
 
-    if final_lang:
-        await db_set_user_lang(user_id, final_lang)
-
-    target_lang = final_lang or "en"
-    response = RedirectResponse(f"/?lang={target_lang}")
-    response.set_cookie("dn_user_id", str(user_id), max_age=86400 * 7)
-    response.set_cookie("dn_username", username, max_age=86400 * 7)
-    response.set_cookie("dn_avatar", avatar_url, max_age=86400 * 7)
-    if final_lang:
-        response.set_cookie("dn_user_lang", final_lang, max_age=86400 * 30)
-    response.set_cookie("dn_lang", target_lang, max_age=86400 * 30)
+@app.get("/auth/logout")
+async def auth_logout():
+    response = RedirectResponse(url="/")
+    response.delete_cookie("dn_user_id")
+    response.delete_cookie("dn_user_name")
+    response.delete_cookie("dn_user_avatar")
+    response.delete_cookie("dn_user_lang")
     return response
 
 @app.post("/api/user/language")
-async def update_user_language(request: Request):
-    user_id_cookie = request.cookies.get("dn_user_id")
-    if not user_id_cookie:
-        return JSONResponse({"status": "guest_only"}, status_code=200)
+async def set_user_language(request: Request):
+    user = get_session_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
-    user_id = int(user_id_cookie)
     body = await request.json()
     new_lang = body.get("lang")
-    if new_lang not in ROLE_IDS:
-        raise HTTPException(status_code=400, detail="Invalid language code")
+    if new_lang not in ("ko", "en", "ja"):
+        raise HTTPException(status_code=400, detail="Invalid language")
 
-    await db_set_user_lang(user_id, new_lang)
+    await db_set_user_lang(int(user["id"]), new_lang)
+    await sync_discord_role(int(user["id"]), new_lang)
 
-    if DISCORD_BOT_TOKEN:
-        bot_headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
-        async with aiohttp.ClientSession() as session:
-            for l_code, r_id in ROLE_IDS.items():
-                if l_code != new_lang:
-                    await session.delete(
-                        f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{r_id}",
-                        headers=bot_headers
-                    )
-            target_role = ROLE_IDS[new_lang]
-            await session.put(
-                f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{target_role}",
-                headers=bot_headers
-            )
-
-    resp = JSONResponse({"status": "success", "lang": new_lang})
-    resp.set_cookie("dn_user_lang", new_lang, max_age=86400 * 30)
-    resp.set_cookie("dn_lang", new_lang, max_age=86400 * 30)
-    return resp
-
-@app.get("/github/{token}", response_class=HTMLResponse)
-async def github_connect_page(request: Request, token: str):
-    redirect_uri = "https://dn.koharu.live/github/callback"
-    return templates.TemplateResponse(
-        request=request,
-        name="github_connect.html",
-        context={
-            "repo": "DevNetwork Repository",
-            "token": token,
-            "github_client_id": GITHUB_CLIENT_ID,
-            "redirect_uri": redirect_uri
-        }
-    )
-
-@app.get("/github/callback")
-async def github_callback(code: Optional[str] = None, state: Optional[str] = None):
-    if not code:
-        return RedirectResponse("/?error=missing_github_code")
-    if state:
-        return RedirectResponse(f"/github/{state}?connected=true")
-    return RedirectResponse("/?connected=true")
-
-@app.post("/api/webhook/github")
-async def github_webhook(request: Request):
-    event = request.headers.get("X-GitHub-Event", "ping")
-    if event == "ping":
-        return JSONResponse({"msg": "pong"})
-    return JSONResponse({"status": "received", "event": event})
-
-@app.get("/auth/logout")
-async def logout():
-    response = RedirectResponse("/")
-    response.delete_cookie("dn_user_id")
-    response.delete_cookie("dn_username")
-    response.delete_cookie("dn_avatar")
-    response.delete_cookie("dn_user_lang")
+    response = JSONResponse({"status": "success", "lang": new_lang})
+    response.set_cookie(key="dn_user_lang", value=new_lang, max_age=86400*30, httponly=False)
+    response.set_cookie(key="dn_lang", value=new_lang, max_age=86400*30, httponly=False)
     return response
