@@ -165,26 +165,26 @@
   <main class="write-container">
     <div style="margin-bottom: 1.75rem;">
       <h1 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem;">{{ t.ask_question }}</h1>
-      <p style="color: var(--text-muted); font-size: 0.95rem;">Post engineering questions that sync instantly to Discord language forum channels.</p>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">{{ t.qna_new_desc }}</p>
     </div>
 
     <div class="notice-card">
-      <strong>Real-time Forum Sync:</strong> Selecting your language will automatically create a forum thread in Discord's dedicated forum channel (<code>💡┃한국어qna</code>, <code>💡┃devqna</code>, or <code>💡┃開発質問qna</code>).
+      <strong>{{ t.qna_new_notice_title }}</strong> {{ t.qna_new_notice_desc }}
     </div>
 
     <form action="/api/qna/create" method="POST">
       <div class="form-group">
-        <label class="form-label">Language Forum Target *</label>
+        <label class="form-label">{{ t.target_forum_label }}</label>
         <select name="post_lang" class="form-select">
-          <option value="ko" {% if lang == 'ko' %}selected{% endif %}>🇰🇷 한국어 개발 Q&A 포럼</option>
-          <option value="en" {% if lang == 'en' %}selected{% endif %}>🇺🇸 English Developer Q&A Forum</option>
-          <option value="ja" {% if lang == 'ja' %}selected{% endif %}>🇯🇵 日本語 開発質問 Q&A フォーラム</option>
+          <option value="ko" {% if lang == 'ko' %}selected{% endif %}>{{ t.target_forum_ko }}</option>
+          <option value="en" {% if lang == 'en' %}selected{% endif %}>{{ t.target_forum_en }}</option>
+          <option value="ja" {% if lang == 'ja' %}selected{% endif %}>{{ t.target_forum_ja }}</option>
         </select>
       </div>
 
       <div class="form-group">
         <label class="form-label">{{ t.input_title }} *</label>
-        <input type="text" name="title" class="form-input" placeholder="e.g., How to handle race conditions in async PostgreSQL pool?" required>
+        <input type="text" name="title" class="form-input" placeholder="{{ t.qna_input_title_placeholder }}" required>
       </div>
 
       <div class="form-group">
@@ -194,20 +194,20 @@
 
       <div class="form-group">
         <label class="form-label">{{ t.input_content }} *</label>
-        <textarea name="content" class="form-textarea" placeholder="Detail the technical issue, error logs, and expected behavior..." required></textarea>
+        <textarea name="content" class="form-textarea" placeholder="{{ t.qna_input_content_placeholder }}" required></textarea>
       </div>
 
       <div style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem;">
         <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.5rem; font-size: 0.95rem;">
-          Submit to Web & Discord
+          {{ t.qna_submit_btn }}
         </button>
-        <a href="/qna" class="btn btn-outline" style="padding: 0.65rem 1.25rem;">Cancel</a>
+        <a href="/qna" class="btn btn-outline" style="padding: 0.65rem 1.25rem;">{{ t.cancel }}</a>
       </div>
     </form>
   </main>
 
   <footer>
-    <p>© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture.</p>
+    <p>{{ t.footer_text }}</p>
   </footer>
 </body>
 </html>

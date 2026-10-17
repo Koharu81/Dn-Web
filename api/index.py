@@ -94,7 +94,50 @@ TRANSLATIONS = {
         "landing_cta": "Login with Discord to Access Community",
         "landing_preview_articles": "Latest Engineering Articles",
         "landing_preview_qna": "Live Community Q&A",
-        "landing_login_to_view": "Discord login is required to read full articles and participate in discussions."
+        "landing_login_to_view": "Discord login is required to read full articles and participate in discussions.",
+        "section_infrastructure": "Core Community Infrastructure",
+        "section_infrastructure_desc": "Next-gen Discord Components V2 Architecture & Global Developer Feed",
+        "pillar_geeknews_title": "GeekNews Tech Feed",
+        "pillar_geeknews_desc": "Curated engineering insights, architecture updates, and tech news with Markdown support and community upvotes.",
+        "pillar_v2_title": "Discord Components V2",
+        "pillar_v2_desc": "Articles are automatically translated and summarized across EN, KO, and JA with interactive V2 link cards in dev-chat.",
+        "pillar_sync_title": "Real-time Forum Sync",
+        "pillar_sync_desc": "Two-way synchronization between the web Q&A portal and Discord 3-language forum channels.",
+        "login_to_view": "Login to View",
+        "by_author": "By",
+        "no_articles_yet": "No articles published yet.",
+        "no_questions_yet": "No questions posted yet.",
+        "back_to_articles": "Back to Articles",
+        "back_to_qna": "Back to Q&A Forum",
+        "source_link": "Source Link",
+        "discord_thread_title": "Discord Dev-Chat Threads (Components V2 Broadcasted)",
+        "discord_thread_ko": "Korean Dev-Chat Thread",
+        "discord_thread_en": "English Dev-Chat Thread",
+        "discord_thread_ja": "Japanese Dev-Chat Thread",
+        "no_comments_yet": "No comments yet.",
+        "login_to_comment": "Login with Discord to join technical discussions",
+        "write_notice_title": "Discord Thread Auto-Routing:",
+        "write_notice_desc": "Publishing this post will create dedicated public threads across the Korean, English, and Japanese dev-chat channels using official Discord Components V2 link embeds.",
+        "input_title_placeholder": "e.g., Designing Microservices with Async Python and PostgreSQL",
+        "input_tags_placeholder": "python, postgresql, system-design",
+        "input_content_placeholder": "Write engineering insights in Markdown...",
+        "cancel": "Cancel",
+        "qna_new_desc": "Post engineering questions that sync instantly to Discord language forum channels.",
+        "qna_new_notice_title": "Real-time Forum Sync:",
+        "qna_new_notice_desc": "Selecting your language will automatically create a forum thread in Discord's dedicated forum channel.",
+        "target_forum_label": "Target Language Forum *",
+        "target_forum_ko": "Korean Developer Q&A Forum",
+        "target_forum_en": "English Developer Q&A Forum",
+        "target_forum_ja": "Japanese Developer Q&A Forum",
+        "qna_input_title_placeholder": "e.g., How to handle race conditions in async PostgreSQL pool?",
+        "qna_input_content_placeholder": "Detail the technical issue, error logs, and expected behavior...",
+        "qna_submit_btn": "Submit to Web & Discord",
+        "live_in_discord": "This question is live in Discord Forum",
+        "no_answers_yet": "No answers posted yet.",
+        "answer_placeholder": "Provide a helpful technical answer (will sync to Discord)...",
+        "login_to_answer": "Login with Discord to answer this question",
+        "discord_forum_synced": "Discord Forum Synced",
+        "footer_text": "© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture."
     },
     "ko": {
         "nav_articles": "아티클 / 테크뉴스",
@@ -142,7 +185,50 @@ TRANSLATIONS = {
         "landing_cta": "디스코드로 로그인하여 시작하기",
         "landing_preview_articles": "최신 테크 아티클",
         "landing_preview_qna": "실시간 커뮤니티 Q&A",
-        "landing_login_to_view": "전체 글 열람 및 커뮤니티 참여는 디스코드 로그인이 필요합니다."
+        "landing_login_to_view": "전체 글 열람 및 커뮤니티 참여는 디스코드 로그인이 필요합니다.",
+        "section_infrastructure": "핵심 커뮤니티 인프라",
+        "section_infrastructure_desc": "차세대 디스코드 컴포넌트 아키텍처와 글로벌 개발자 피드",
+        "pillar_geeknews_title": "긱뉴스 테크 피드",
+        "pillar_geeknews_desc": "최신 개발 지식과 기술 뉴스를 마크다운 및 추천(Upvote) 시스템으로 공유하는 테크 아티클 플랫폼입니다.",
+        "pillar_v2_title": "디스코드 컴포넌트 V2",
+        "pillar_v2_desc": "글 작성 시 한국어, 영어, 일본어로 즉시 번역 요약되어 각 언어 개발 채널에 V2 링크 카드로 스레드가 자동 생성됩니다.",
+        "pillar_sync_title": "실시간 포럼 양방향 동기화",
+        "pillar_sync_desc": "웹 포털의 Q&A 질문/답변과 디스코드 서버 내의 3개 국어 포럼 채널이 실시간 양방향으로 동기화됩니다.",
+        "login_to_view": "로그인 후 확인",
+        "by_author": "작성자:",
+        "no_articles_yet": "아직 등록된 아티클이 없습니다.",
+        "no_questions_yet": "아직 등록된 질문이 없습니다.",
+        "back_to_articles": "아티클 목록으로",
+        "back_to_qna": "Q&A 포럼으로",
+        "source_link": "원문 링크",
+        "discord_thread_title": "디스코드 데브챗 스레드 (컴포넌트 V2 연동)",
+        "discord_thread_ko": "한국어 데브챗 스레드",
+        "discord_thread_en": "영어 데브챗 스레드",
+        "discord_thread_ja": "일본어 데브챗 스레드",
+        "no_comments_yet": "아직 작성된 댓글이 없습니다.",
+        "login_to_comment": "기술 토론에 참여하려면 디스코드로 로그인하세요",
+        "write_notice_title": "디스코드 스레드 자동 라우팅:",
+        "write_notice_desc": "글을 발행하면 한국어, 영어, 일본어 데브챗 채널에 공식 디스코드 컴포넌트 V2 링크 임베드가 포함된 전용 스레드가 자동 생성됩니다.",
+        "input_title_placeholder": "예: 비동기 Python과 PostgreSQL로 마이크로서비스 설계하기",
+        "input_tags_placeholder": "python, postgresql, system-design",
+        "input_content_placeholder": "마크다운 형식으로 엔지니어링 지식을 공유해주세요...",
+        "cancel": "취소",
+        "qna_new_desc": "디스코드의 각 언어별 포럼 채널로 즉시 동기화되는 개발 질문을 등록하세요.",
+        "qna_new_notice_title": "실시간 포럼 동기화:",
+        "qna_new_notice_desc": "질문 언어를 선택하면 해당 언어의 디스코드 전용 포럼 채널에 스레드가 자동으로 생성됩니다.",
+        "target_forum_label": "연동 포럼 언어 선택 *",
+        "target_forum_ko": "한국어 개발 Q&A 포럼",
+        "target_forum_en": "영어 개발 Q&A 포럼",
+        "target_forum_ja": "일본어 개발 Q&A 포럼",
+        "qna_input_title_placeholder": "예: 비동기 PostgreSQL 커넥션 풀의 경쟁 상태를 방지하는 방법은?",
+        "qna_input_content_placeholder": "발생한 문제 상황, 에러 로그, 기대 동작 등을 자세히 작성해주세요...",
+        "qna_submit_btn": "웹 및 디스코드에 동시 등록",
+        "live_in_discord": "이 질문은 디스코드 포럼 채널과 실시간 연동되어 있습니다",
+        "no_answers_yet": "아직 작성된 답변이 없습니다.",
+        "answer_placeholder": "도움이 되는 기술 답변을 남겨주세요 (디스코드 포럼에 자동 동기화됩니다)...",
+        "login_to_answer": "답변을 작성하려면 디스코드로 로그인하세요",
+        "discord_forum_synced": "디스코드 포럼 동기화됨",
+        "footer_text": "© 2026 DevNetwork. 엔터프라이즈 디스코드 & 깃허브 자동화 아키텍처."
     },
     "ja": {
         "nav_articles": "記事・テックニュース",
@@ -190,7 +276,50 @@ TRANSLATIONS = {
         "landing_cta": "Discordでログインして開始",
         "landing_preview_articles": "最新の技術記事",
         "landing_preview_qna": "リアルタイム Q&A",
-        "landing_login_to_view": "記事の全文閲覧や投稿にはDiscordログインが必要です。"
+        "landing_login_to_view": "記事の全文閲覧や投稿にはDiscordログインが必要です。",
+        "section_infrastructure": "コアコミュニティインフラ",
+        "section_infrastructure_desc": "次世代Discordコンポーネントアーキテクチャとグローバル開発者フィード",
+        "pillar_geeknews_title": "GeekNews 技術フィード",
+        "pillar_geeknews_desc": "最新の開発知見や技術ニュースをマークダウン記法とUpvoteシステムで共有する技術記事プラットフォームです。",
+        "pillar_v2_title": "Discord コンポーネント V2",
+        "pillar_v2_desc": "投稿時に英語、韓国語、日本語へ即座に要約翻訳され、各言語の開発チャンネルにV2リンクカードとしてスレッドが自動生成されます。",
+        "pillar_sync_title": "リアルタイムフォーラム双方向同期",
+        "pillar_sync_desc": "WebポータルのQ&A質問・回答とDiscordサーバー内の3言語フォーラムチャンネルがリアルタイムで双方向同期されます。",
+        "login_to_view": "ログインして確認",
+        "by_author": "投稿者:",
+        "no_articles_yet": "まだ記事が投稿されていません。",
+        "no_questions_yet": "まだ質問が投稿されていません。",
+        "back_to_articles": "記事一覧に戻る",
+        "back_to_qna": "Q&Aフォーラムに戻る",
+        "source_link": "ソースリンク",
+        "discord_thread_title": "Discord 開発スレッド (コンポーネントV2配信済み)",
+        "discord_thread_ko": "韓国語 開発スレッド",
+        "discord_thread_en": "英語 開発スレッド",
+        "discord_thread_ja": "日本語 開発スレッド",
+        "no_comments_yet": "まだコメントがありません。",
+        "login_to_comment": "技術ディスカッションに参加するにはDiscordでログインしてください",
+        "write_notice_title": "Discordスレッド自動ルーティング:",
+        "write_notice_desc": "記事を公開すると、DiscordコンポーネントV2リンク埋め込みを使用して、韓国語、英語、日本語の開発チャンネルに専用スレッドが自動作成されます。",
+        "input_title_placeholder": "例: 非同期PythonとPostgreSQLによるマイクロサービス設計",
+        "input_tags_placeholder": "python, postgresql, system-design",
+        "input_content_placeholder": "Markdown形式で技術的な知見を記述してください...",
+        "cancel": "キャンセル",
+        "qna_new_desc": "Discordの各言語フォーラムチャンネルに即座に同期される開発質問を投稿します。",
+        "qna_new_notice_title": "リアルタイムフォーラム同期:",
+        "qna_new_notice_desc": "言語を選択すると、Discordの対応する専用フォーラムチャンネルにスレッドが自動作成されます。",
+        "target_forum_label": "対象言語フォーラム *",
+        "target_forum_ko": "韓国語 開発 Q&A フォーラム",
+        "target_forum_en": "英語 開発 Q&A フォーラム",
+        "target_forum_ja": "日本語 開発 Q&A フォーラム",
+        "qna_input_title_placeholder": "例: 非同期PostgreSQL接続プールにおける競合状態の解決策は？",
+        "qna_input_content_placeholder": "技術的な課題、エラーログ、期待される動作などを詳細に記入してください...",
+        "qna_submit_btn": "WebとDiscordに同時投稿",
+        "live_in_discord": "この質問はDiscordフォーラムチャンネルとリアルタイム同期しています",
+        "no_answers_yet": "まだ回答が投稿されていません。",
+        "answer_placeholder": "参考になる技術的な回答を入力してください（Discordフォーラムに自動同期されます）...",
+        "login_to_answer": "この質問に回答するにはDiscordでログインしてください",
+        "discord_forum_synced": "Discordフォーラム同期済み",
+        "footer_text": "© 2026 DevNetwork. エンタープライズDiscord＆GitHubオートメーションアーキテクチャ。"
     }
 }
 
@@ -263,7 +392,7 @@ def get_session_user(request: Request) -> Optional[Dict[str, Any]]:
             "id": uid,
             "username": uname,
             "avatar_url": uavatar or f"https://cdn.discordapp.com/embed/avatars/{int(uid) % 5}.png",
-            "lang": ulang or "en"
+            "lang": ulang or "ko"
         }
     return None
 
@@ -370,7 +499,7 @@ async def write_article_page(request: Request):
         return RedirectResponse(url="/auth/discord", status_code=303)
     
     ui_lang = resolve_lang(request, user)
-    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
     
     return templates.TemplateResponse(
         request=request,
@@ -558,7 +687,7 @@ async def new_qna_page(request: Request):
         return RedirectResponse(url="/auth/discord", status_code=303)
 
     ui_lang = resolve_lang(request, user)
-    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
 
     return templates.TemplateResponse(
         request=request,

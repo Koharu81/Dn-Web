@@ -457,8 +457,8 @@
   <!-- Features Section -->
   <section class="features-section">
     <div class="section-title-wrap">
-      <h2 class="section-title">Core Community Infrastructure</h2>
-      <p class="section-desc">차세대 디스코드 컴포넌트 아키텍처와 글로벌 개발자 피드</p>
+      <h2 class="section-title">{{ t.section_infrastructure }}</h2>
+      <p class="section-desc">{{ t.section_infrastructure_desc }}</p>
     </div>
 
     <div class="pillars-grid">
@@ -466,24 +466,24 @@
         <div class="pillar-icon-box">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
         </div>
-        <h3 class="pillar-title">GeekNews Tech Feed</h3>
-        <p class="pillar-desc">최신 개발 지식과 기술 뉴스를 마크다운 및 Upvote 시스템으로 공유하는 테크 아티클 플랫폼입니다.</p>
+        <h3 class="pillar-title">{{ t.pillar_geeknews_title }}</h3>
+        <p class="pillar-desc">{{ t.pillar_geeknews_desc }}</p>
       </div>
 
       <div class="pillar-card">
         <div class="pillar-icon-box">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
         </div>
-        <h3 class="pillar-title">Discord Components V2</h3>
-        <p class="pillar-desc">글 작성 시 한국어, 영어, 일본어로 즉시 번역 요약되어 각 언어 개발 채널에 V2 링크 카드로 스레드가 자동 생성됩니다.</p>
+        <h3 class="pillar-title">{{ t.pillar_v2_title }}</h3>
+        <p class="pillar-desc">{{ t.pillar_v2_desc }}</p>
       </div>
 
       <div class="pillar-card">
         <div class="pillar-icon-box">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </div>
-        <h3 class="pillar-title">Real-time Forum Sync</h3>
-        <p class="pillar-desc">웹 포털의 Q&A 질문/답변과 디스코드 서버 내의 3개 국어 포럼 채널이 실시간 양방향으로 동기화됩니다.</p>
+        <h3 class="pillar-title">{{ t.pillar_sync_title }}</h3>
+        <p class="pillar-desc">{{ t.pillar_sync_desc }}</p>
       </div>
     </div>
 
@@ -496,14 +496,14 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
             <span>{{ t.landing_preview_articles }}</span>
           </div>
-          <a href="/auth/discord" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">Login to View</a>
+          <a href="/auth/discord" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">{{ t.login_to_view }}</a>
         </div>
         {% if articles_preview %}
           {% for a in articles_preview %}
             <a href="/auth/discord" class="preview-item">
               <div class="preview-item-title">{{ a.title }}</div>
               <div class="preview-item-meta">
-                <span>By {{ a.author_name }}</span>
+                <span>{{ t.by_author }} {{ a.author_name }}</span>
                 <span>·</span>
                 <span>▲ {{ a.upvotes }}</span>
                 <span>·</span>
@@ -512,7 +512,7 @@
             </a>
           {% endfor %}
         {% else %}
-          <p style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">No articles published yet.</p>
+          <p style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">{{ t.no_articles_yet }}</p>
         {% endif %}
       </div>
 
@@ -523,7 +523,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             <span>{{ t.landing_preview_qna }}</span>
           </div>
-          <a href="/auth/discord" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">Login to View</a>
+          <a href="/auth/discord" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">{{ t.login_to_view }}</a>
         </div>
         {% if qna_preview %}
           {% for q in qna_preview %}
@@ -531,14 +531,14 @@
               <div class="preview-item-title">{{ q.title }}</div>
               <div class="preview-item-meta">
                 <span>[{{ q.lang | upper }}]</span>
-                <span>By {{ q.author_name }}</span>
+                <span>{{ t.by_author }} {{ q.author_name }}</span>
                 <span>·</span>
                 <span>{{ q.created_at.strftime('%m-%d') if q.created_at else '' }}</span>
               </div>
             </a>
           {% endfor %}
         {% else %}
-          <p style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">No questions posted yet.</p>
+          <p style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">{{ t.no_questions_yet }}</p>
         {% endif %}
       </div>
     </div>
@@ -546,7 +546,7 @@
 
   <!-- Footer -->
   <footer>
-    <p>© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture.</p>
+    <p>{{ t.footer_text }}</p>
   </footer>
 
   <script>

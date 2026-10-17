@@ -170,13 +170,13 @@
     </div>
 
     <div class="notice-card">
-      <strong>Discord Thread Auto-Routing:</strong> Publishing this post will create dedicated public threads across the Korean, English, and Japanese dev-chat channels using official Discord Components V2 link embeds.
+      <strong>{{ t.write_notice_title }}</strong> {{ t.write_notice_desc }}
     </div>
 
     <form action="/api/article/create" method="POST">
       <div class="form-group">
         <label class="form-label">{{ t.input_title }} *</label>
-        <input type="text" name="title" class="form-input" placeholder="e.g., Designing Microservices with Async Python and PostgreSQL" required>
+        <input type="text" name="title" class="form-input" placeholder="{{ t.input_title_placeholder }}" required>
       </div>
 
       <div class="form-group">
@@ -186,7 +186,7 @@
 
       <div class="form-group">
         <label class="form-label">{{ t.input_tags }}</label>
-        <input type="text" name="tags" class="form-input" placeholder="python, postgresql, system-design">
+        <input type="text" name="tags" class="form-input" placeholder="{{ t.input_tags_placeholder }}">
       </div>
 
       <div class="form-group">
@@ -196,20 +196,20 @@
 
       <div class="form-group">
         <label class="form-label">{{ t.input_content }} *</label>
-        <textarea name="content" class="form-textarea" placeholder="Write engineering insights in Markdown..." required></textarea>
+        <textarea name="content" class="form-textarea" placeholder="{{ t.input_content_placeholder }}" required></textarea>
       </div>
 
       <div style="display: flex; gap: 1rem; align-items: center; margin-top: 2rem;">
         <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.5rem; font-size: 0.95rem;">
           {{ t.btn_publish }}
         </button>
-        <a href="/" class="btn btn-outline" style="padding: 0.65rem 1.25rem;">Cancel</a>
+        <a href="/" class="btn btn-outline" style="padding: 0.65rem 1.25rem;">{{ t.cancel }}</a>
       </div>
     </form>
   </main>
 
   <footer>
-    <p>© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture.</p>
+    <p>{{ t.footer_text }}</p>
   </footer>
 </body>
 </html>
