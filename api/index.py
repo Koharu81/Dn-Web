@@ -1,13 +1,16 @@
 import os
+import base64
 import aiohttp
 import asyncpg
 import markdown
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from fastapi import FastAPI, Request, Response, HTTPException, Form
+from urllib.parse import urlencode
+from fastapi import FastAPI, Request, Response, HTTPException, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .db import (
     db_get_articles, db_get_article, db_create_article, db_save_article_thread,
@@ -23,6 +26,21 @@ from .discord_sync import (
 
 app = FastAPI(title="DevNetwork Global Tech Hub")
 
+# --- Middleware: Strip ?lang= from URLs automatically and persist to cookie ---
+@app.middleware("http")
+async def clean_lang_query_middleware(request: Request, call_next):
+    if "lang" in request.query_params:
+        lang_val = request.query_params.get("lang")
+        if lang_val in ("ko", "en", "ja"):
+            params = dict(request.query_params)
+            params.pop("lang", None)
+            query_string = urlencode(params)
+            clean_url = request.url.path + (f"?{query_string}" if query_string else "")
+            response = RedirectResponse(url=clean_url, status_code=303)
+            response.set_cookie(key="dn_lang", value=lang_val, max_age=31536000, httponly=False, samesite="lax")
+            return response
+    return await call_next(request)
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -31,6 +49,31 @@ if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
+
+# --- 404 Exception Handler with Snake Game ---
+@app.get("/404", response_class=HTMLResponse)
+async def page_404(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="404.html",
+        context={"request": request, "base_url": os.getenv("APP_BASE_URL", "https://dn.koharu.live")},
+        status_code=404
+    )
+
+@app.exception_handler(404)
+@app.exception_handler(StarletteHTTPException)
+async def custom_404_handler(request: Request, exc):
+    status_code = getattr(exc, "status_code", 404)
+    if status_code == 404:
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        return templates.TemplateResponse(
+            request=request,
+            name="404.html",
+            context={"request": request, "base_url": os.getenv("APP_BASE_URL", "https://dn.koharu.live")},
+            status_code=404
+        )
+    return JSONResponse(status_code=status_code, content={"detail": str(exc)})
 
 DISCORD_BOT_TOKEN = os.getenv("DN_DISCORD_BOT_TOKEN", "")
 DISCORD_CLIENT_ID = os.getenv("DN_CLIENT_ID", "")
@@ -109,6 +152,8 @@ TRANSLATIONS = {
         "no_questions_yet": "No questions posted yet.",
         "back_to_articles": "Back to Articles",
         "back_to_qna": "Back to Q&A Forum",
+        "share_link": "Copy Share Link",
+        "share_link_copied": "Link Copied!",
         "source_link": "Source Link",
         "discord_thread_title": "Discord Dev-Chat Threads (Components V2 Broadcasted)",
         "discord_thread_ko": "Korean Dev-Chat Thread",
@@ -200,6 +245,8 @@ TRANSLATIONS = {
         "no_questions_yet": "아직 등록된 질문이 없습니다.",
         "back_to_articles": "아티클 목록으로",
         "back_to_qna": "Q&A 포럼으로",
+        "share_link": "공유 링크 복사",
+        "share_link_copied": "복사 완료!",
         "source_link": "원문 링크",
         "discord_thread_title": "디스코드 데브챗 스레드 (컴포넌트 V2 연동)",
         "discord_thread_ko": "한국어 데브챗 스레드",
@@ -291,6 +338,8 @@ TRANSLATIONS = {
         "no_questions_yet": "まだ質問が投稿されていません。",
         "back_to_articles": "記事一覧に戻る",
         "back_to_qna": "Q&Aフォーラムに戻る",
+        "share_link": "共有リンクをコピー",
+        "share_link_copied": "コピー完了！",
         "source_link": "ソースリンク",
         "discord_thread_title": "Discord 開発スレッド (コンポーネントV2配信済み)",
         "discord_thread_ko": "韓国語 開発スレッド",
@@ -513,6 +562,19 @@ async def write_article_page(request: Request):
         }
     )
 
+@app.post("/api/upload")
+async def upload_file_api(request: Request, file: UploadFile = File(...)):
+    user = get_session_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    file_bytes = await file.read()
+    if len(file_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+    content_type = file.content_type or "image/png"
+    b64_str = base64.b64encode(file_bytes).decode("utf-8")
+    data_url = f"data:{content_type};base64,{b64_str}"
+    return JSONResponse({"url": data_url, "filename": file.filename})
+
 @app.post("/api/article/create")
 async def create_article(
     request: Request,
@@ -520,12 +582,22 @@ async def create_article(
     content: str = Form(...),
     external_url: Optional[str] = Form(""),
     tags: Optional[str] = Form(""),
-    image_url: Optional[str] = Form("")
+    image_url: Optional[str] = Form(""),
+    image_file: Optional[UploadFile] = File(None)
 ):
     user = get_session_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
     
+    # Process uploaded image file if provided
+    final_image_url = image_url or ""
+    if image_file and image_file.filename:
+        file_bytes = await image_file.read()
+        if len(file_bytes) > 0:
+            content_type = image_file.content_type or "image/png"
+            b64_str = base64.b64encode(file_bytes).decode("utf-8")
+            final_image_url = f"data:{content_type};base64,{b64_str}"
+
     ui_lang = resolve_lang(request, user)
     
     # 1. Generate multilang titles and summaries
@@ -541,7 +613,7 @@ async def create_article(
         content=content,
         summary=primary_summary,
         external_url=external_url or "",
-        image_url=image_url or "",
+        image_url=final_image_url,
         tags=tags or "",
         lang=ui_lang
     )
@@ -557,7 +629,7 @@ async def create_article(
                 title=loc_title,
                 summary=loc_summary,
                 article_id=article_id,
-                image_url=image_url
+                image_url=final_image_url if not final_image_url.startswith("data:") else None
             )
         )
     
@@ -707,11 +779,20 @@ async def create_qna(
     title: str = Form(...),
     content: str = Form(...),
     post_lang: str = Form("en"),
-    image_url: Optional[str] = Form("")
+    image_url: Optional[str] = Form(""),
+    image_file: Optional[UploadFile] = File(None)
 ):
     user = get_session_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
+
+    final_image_url = image_url or ""
+    if image_file and image_file.filename:
+        file_bytes = await image_file.read()
+        if len(file_bytes) > 0:
+            content_type = image_file.content_type or "image/png"
+            b64_str = base64.b64encode(file_bytes).decode("utf-8")
+            final_image_url = f"data:{content_type};base64,{b64_str}"
 
     forum_channel_id = str(QNA_FORUM_CHANNELS.get(post_lang, QNA_FORUM_CHANNELS["en"]))
 
@@ -723,7 +804,7 @@ async def create_qna(
         lang=post_lang,
         title=title,
         content=content,
-        image_url=image_url or "",
+        image_url=final_image_url,
         discord_channel_id=forum_channel_id,
         discord_thread_id=""
     )
@@ -734,7 +815,7 @@ async def create_qna(
         title=title,
         content=content,
         post_id=post_id,
-        image_url=image_url
+        image_url=final_image_url if not final_image_url.startswith("data:") else None
     )
     if thread_id:
         await db_update_qna_discord_thread(post_id, thread_id)

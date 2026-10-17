@@ -94,7 +94,7 @@ async def discord_create_article_thread(lang: str, title: str, summary: str, art
                 thread_data = await resp.json()
                 thread_id = thread_data["id"]
 
-            # 2. Post Initial Message with Link Component and Summary
+            # 2. Post Initial Message with Components V2 Link Card and Separator
             msg_url = f"https://discord.com/api/v10/channels/{thread_id}/messages"
             button_label = {
                 "ko": "웹에서 전체 글 읽기",
@@ -102,24 +102,28 @@ async def discord_create_article_thread(lang: str, title: str, summary: str, art
                 "ja": "ウェブで全文を読む"
             }.get(lang, "Read Full Article")
             
-            # Content with link and Component V2 button
+            content_text = f"### {title}\n\n{summary}\n\n──────────────────────────────────────\n공유 링크: {article_url}"
+            
+            # Components V2 Payload (Button + Separator)
+            v2_components = [
+                {
+                    "type": 1, # ACTION_ROW
+                    "components": [
+                        {
+                            "type": 2, # BUTTON
+                            "style": 5, # LINK
+                            "label": button_label,
+                            "url": article_url
+                        }
+                    ]
+                }
+            ]
+
             msg_payload = {
-                "content": f"### 📰 {title}\n\n{summary}\n\n{article_url}",
-                "components": [
-                    {
-                        "type": 1, # ACTION_ROW
-                        "components": [
-                            {
-                                "type": 2, # BUTTON
-                                "style": 5, # LINK
-                                "label": button_label,
-                                "url": article_url
-                            }
-                        ]
-                    }
-                ]
+                "content": content_text,
+                "components": v2_components
             }
-            if image_url:
+            if image_url and not image_url.startswith("data:"):
                 msg_payload["embeds"] = [{
                     "image": {"url": image_url},
                     "color": 3907797
@@ -130,6 +134,9 @@ async def discord_create_article_thread(lang: str, title: str, summary: str, art
                 if msg_resp.status in (200, 201):
                     msg_data = await msg_resp.json()
                     msg_id = msg_data.get("id", "")
+                else:
+                    err_text = await msg_resp.text()
+                    print(f"Message send error: {msg_resp.status} {err_text}")
                 
                 return {
                     "lang": lang,
@@ -142,7 +149,7 @@ async def discord_create_article_thread(lang: str, title: str, summary: str, art
         return None
 
 async def discord_create_forum_post(lang: str, title: str, content: str, post_id: int, image_url: Optional[str] = None) -> Optional[str]:
-    """Creates a forum post in the dedicated Q&A forum channel."""
+    """Creates a forum post in the dedicated Q&A forum channel with Components V2 link card."""
     forum_id = QNA_FORUM_CHANNELS.get(lang)
     if not forum_id or not DISCORD_BOT_TOKEN:
         return None
@@ -160,7 +167,7 @@ async def discord_create_forum_post(lang: str, title: str, content: str, post_id
             }.get(lang, "View on Q&A")
             
             msg_obj = {
-                "content": f"{content[:1500]}\n\n🔗 {qna_url}",
+                "content": f"{content[:1400]}\n\n──────────────────────────────────────\n공유 링크: {qna_url}",
                 "components": [
                     {
                         "type": 1,
@@ -175,7 +182,7 @@ async def discord_create_forum_post(lang: str, title: str, content: str, post_id
                     }
                 ]
             }
-            if image_url:
+            if image_url and not image_url.startswith("data:"):
                 msg_obj["embeds"] = [{
                     "image": {"url": image_url},
                     "color": 3907797

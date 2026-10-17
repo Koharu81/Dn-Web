@@ -262,10 +262,15 @@
 
     <div class="qna-header">
       <h1 class="qna-main-title">{{ post.title }}</h1>
-      <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-muted);">
+      <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap;">
         <span style="font-weight: 600; color: var(--text-main);">{{ post.author_name }}</span>
         <span>·</span>
         <span>{{ post.created_at.strftime('%Y-%m-%d %H:%M') if post.created_at else '' }}</span>
+        <span>·</span>
+        <button onclick="copyShareLink()" class="btn btn-outline" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: 4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          <span id="shareBtnText">{{ t.share_link }}</span>
+        </button>
       </div>
     </div>
 
@@ -326,5 +331,29 @@
   <footer>
     <p>{{ t.footer_text }}</p>
   </footer>
+
+  <script>
+    function copyShareLink() {
+      const shareUrl = window.location.href.split('?')[0];
+      const btnText = document.getElementById('shareBtnText');
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(shareUrl).then(onCopied);
+      } else {
+        const input = document.createElement('input');
+        input.value = shareUrl;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        onCopied();
+      }
+      function onCopied() {
+        if (!btnText) return;
+        const original = btnText.innerText;
+        btnText.innerText = "{{ t.share_link_copied }}";
+        setTimeout(() => { btnText.innerText = original; }, 2000);
+      }
+    }
+  </script>
 </body>
 </html>

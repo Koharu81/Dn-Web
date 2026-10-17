@@ -550,14 +550,21 @@
   </footer>
 
   <script>
+    // Clean URL without ?lang=
+    if (window.location.search.includes('lang=')) {
+      const cleanUrl = window.location.pathname + window.location.search.replace(/[?&]lang=[^&]+/, '').replace(/^&/, '?');
+      history.replaceState({}, '', cleanUrl || window.location.pathname);
+    }
+
     function toggleLangDropdown(event) {
       if (event) event.stopPropagation();
       const dropdown = document.getElementById('langDropdown');
       if (dropdown) dropdown.classList.toggle('open');
     }
 
-    function selectLanguage(lang) {
-      window.location.href = '/?lang=' + lang;
+    function selectLanguage(newLang) {
+      document.cookie = "dn_lang=" + newLang + "; path=/; max-age=31536000; SameSite=Lax";
+      window.location.reload();
     }
 
     document.addEventListener('click', function(e) {
