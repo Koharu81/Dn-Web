@@ -273,18 +273,21 @@ async def articles_feed(
 
     articles = await db_get_articles(sort=sort, tag=tag, lang=lang_filter)
     
-    response = templates.TemplateResponse("index.html", {
-        "request": request,
-        "articles": articles,
-        "user": user,
-        "lang": ui_lang,
-        "t": t,
-        "current_sort": sort,
-        "current_tag": tag or "",
-        "current_lang_filter": lang_filter or "all",
-        "active_tab": "articles",
-        "base_url": APP_BASE_URL
-    })
+    response = templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "articles": articles,
+            "user": user,
+            "lang": ui_lang,
+            "t": t,
+            "current_sort": sort,
+            "current_tag": tag or "",
+            "current_lang_filter": lang_filter or "all",
+            "active_tab": "articles",
+            "base_url": APP_BASE_URL
+        }
+    )
     response.set_cookie(key="dn_lang", value=ui_lang, max_age=31536000, httponly=False)
     return response
 
@@ -297,14 +300,17 @@ async def write_article_page(request: Request):
     ui_lang = resolve_lang(request, user)
     t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
     
-    return templates.TemplateResponse("write.html", {
-        "request": request,
-        "user": user,
-        "lang": ui_lang,
-        "t": t,
-        "active_tab": "submit",
-        "base_url": APP_BASE_URL
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="write.html",
+        context={
+            "user": user,
+            "lang": ui_lang,
+            "t": t,
+            "active_tab": "submit",
+            "base_url": APP_BASE_URL
+        }
+    )
 
 @app.post("/api/article/create")
 async def create_article(
@@ -381,18 +387,21 @@ async def article_detail(request: Request, article_id: int):
     comments = await db_get_article_comments(article_id)
     content_html = markdown.markdown(article["content"], extensions=["fenced_code", "tables"])
 
-    return templates.TemplateResponse("article_detail.html", {
-        "request": request,
-        "article": article,
-        "content_html": content_html,
-        "threads": threads,
-        "comments": comments,
-        "user": user,
-        "lang": ui_lang,
-        "t": t,
-        "base_url": APP_BASE_URL,
-        "active_tab": "articles"
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="article_detail.html",
+        context={
+            "article": article,
+            "content_html": content_html,
+            "threads": threads,
+            "comments": comments,
+            "user": user,
+            "lang": ui_lang,
+            "t": t,
+            "base_url": APP_BASE_URL,
+            "active_tab": "articles"
+        }
+    )
 
 @app.post("/api/article/{article_id}/upvote")
 async def toggle_article_upvote(request: Request, article_id: int):
@@ -445,17 +454,20 @@ async def qna_feed(
 
     posts = await db_get_qna_posts(lang=lang_filter, solved=is_solved)
 
-    return templates.TemplateResponse("qna_list.html", {
-        "request": request,
-        "posts": posts,
-        "user": user,
-        "lang": ui_lang,
-        "t": t,
-        "current_lang_filter": lang_filter or "all",
-        "current_solved_filter": solved_filter or "all",
-        "active_tab": "qna",
-        "base_url": APP_BASE_URL
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="qna_list.html",
+        context={
+            "posts": posts,
+            "user": user,
+            "lang": ui_lang,
+            "t": t,
+            "current_lang_filter": lang_filter or "all",
+            "current_solved_filter": solved_filter or "all",
+            "active_tab": "qna",
+            "base_url": APP_BASE_URL
+        }
+    )
 
 @app.get("/qna/new", response_class=HTMLResponse)
 async def new_qna_page(request: Request):
@@ -466,14 +478,17 @@ async def new_qna_page(request: Request):
     ui_lang = resolve_lang(request, user)
     t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
 
-    return templates.TemplateResponse("qna_new.html", {
-        "request": request,
-        "user": user,
-        "lang": ui_lang,
-        "t": t,
-        "active_tab": "qna",
-        "base_url": APP_BASE_URL
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="qna_new.html",
+        context={
+            "user": user,
+            "lang": ui_lang,
+            "t": t,
+            "active_tab": "qna",
+            "base_url": APP_BASE_URL
+        }
+    )
 
 @app.post("/api/qna/create")
 async def create_qna(
@@ -528,17 +543,20 @@ async def qna_detail(request: Request, post_id: int):
     answers = await db_get_qna_answers(post_id)
     content_html = markdown.markdown(post["content"], extensions=["fenced_code", "tables"])
 
-    return templates.TemplateResponse("qna_detail.html", {
-        "request": request,
-        "post": post,
-        "content_html": content_html,
-        "answers": answers,
-        "user": user,
-        "lang": ui_lang,
-        "t": t,
-        "active_tab": "qna",
-        "base_url": APP_BASE_URL
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="qna_detail.html",
+        context={
+            "post": post,
+            "content_html": content_html,
+            "answers": answers,
+            "user": user,
+            "lang": ui_lang,
+            "t": t,
+            "active_tab": "qna",
+            "base_url": APP_BASE_URL
+        }
+    )
 
 @app.post("/api/qna/{post_id}/answer")
 async def add_qna_answer(
