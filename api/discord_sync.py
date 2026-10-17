@@ -6,7 +6,7 @@ import json
 from typing import Dict, Any, List, Optional
 
 DISCORD_BOT_TOKEN = os.getenv("DN_DISCORD_BOT_TOKEN", "")
-BASE_URL = os.getenv("APP_BASE_URL", "https://dn-web-mocha.vercel.app")
+BASE_URL = os.getenv("APP_BASE_URL", "https://dn.koharu.live")
 
 # Channels Mapping
 DEV_CHAT_CHANNELS = {

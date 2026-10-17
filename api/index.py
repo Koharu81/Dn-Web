@@ -36,7 +36,8 @@ DISCORD_BOT_TOKEN = os.getenv("DN_DISCORD_BOT_TOKEN", "")
 DISCORD_CLIENT_ID = os.getenv("DN_CLIENT_ID", "")
 DISCORD_CLIENT_SECRET = os.getenv("DN_CLIENT_SECRET", "")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_Zla3NzLDfK6M@ep-odd-lake-b58efh05-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require")
-APP_BASE_URL = os.getenv("APP_BASE_URL", "https://dn-web-mocha.vercel.app")
+APP_BASE_URL = os.getenv("APP_BASE_URL", "https://dn.koharu.live")
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "https://dn.koharu.live/auth/discord/callback")
 
 GUILD_ID = 1552469048099471390
 ROLE_IDS = {
@@ -708,14 +709,15 @@ async def trigger_discord_qna_sync():
 # ==========================================
 @app.get("/auth/discord")
 async def auth_discord():
-    redirect_uri = f"{APP_BASE_URL}/auth/callback"
+    redirect_uri = DISCORD_REDIRECT_URI
     scope = "identify guilds.members.read"
     url = f"https://discord.com/api/oauth2/authorize?client_id={DISCORD_CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code&scope={scope}"
     return RedirectResponse(url=url)
 
+@app.get("/auth/discord/callback")
 @app.get("/auth/callback")
 async def auth_callback(code: str, request: Request):
-    redirect_uri = f"{APP_BASE_URL}/auth/callback"
+    redirect_uri = DISCORD_REDIRECT_URI
     token_url = "https://discord.com/api/oauth2/token"
     data = {
         "client_id": DISCORD_CLIENT_ID,
