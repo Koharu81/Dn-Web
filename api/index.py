@@ -1,4 +1,5 @@
 import os
+import json
 import base64
 import aiohttp
 import asyncpg
@@ -116,8 +117,10 @@ TRANSLATIONS = {
         "input_title": "Title",
         "input_external_url": "External URL (Optional, for GeekNews style curation)",
         "input_tags": "Tags (comma separated, e.g., python, devops, ai)",
-        "input_content": "Content (Markdown supported)",
-        "input_image_url": "Banner / Diagram Image URL (Optional)",
+        "input_image_url": "Attached Images (Up to 5, Optional)",
+        "upload_dropzone_title": "Click to select image files or drag them here",
+        "upload_dropzone_subtitle": "PNG, JPG, WebP, GIF (Max 5 files, 10MB each)",
+        "upload_dropzone_remove": "Remove",
         "btn_publish": "Publish & Broadcast to Discord",
         "qna_title": "Community Q&A Forum",
         "qna_desc": "Two-way synchronized developer forum connecting Web Portal and Discord Language Forums.",
@@ -210,7 +213,10 @@ TRANSLATIONS = {
         "input_external_url": "외부 링크 (선택사항, 긱뉴스 형태 공유)",
         "input_tags": "태그 (쉼표로 구분, 예: python, devops, ai)",
         "input_content": "본문 내용 (마크다운 지원)",
-        "input_image_url": "대표 이미지 / 다이어그램 URL (선택사항)",
+        "input_image_url": "이미지 첨부 (최대 5개, 선택사항)",
+        "upload_dropzone_title": "클릭하여 이미지 파일을 선택하거나 여기로 드래그하세요",
+        "upload_dropzone_subtitle": "PNG, JPG, WebP, GIF (최대 5개, 파일당 10MB)",
+        "upload_dropzone_remove": "삭제",
         "btn_publish": "발행 및 디스코드 동기화",
         "qna_title": "개발자 Q&A 포럼",
         "qna_desc": "웹 포털과 디스코드 언어별 포럼 채널이 실시간 양방향으로 동기화되는 커뮤니티 공간입니다.",
@@ -303,7 +309,10 @@ TRANSLATIONS = {
         "input_external_url": "外部リンク（任意、GeekNews形式のキュレーション）",
         "input_tags": "タグ（カンマ区切り、例: python, devops, ai）",
         "input_content": "本文（Markdown対応）",
-        "input_image_url": "アイキャッチ画像 / 図解URL（任意）",
+        "input_image_url": "添付画像（最大5枚、任意）",
+        "upload_dropzone_title": "クリックして画像ファイルを選択するか、ここにドラッグしてください",
+        "upload_dropzone_subtitle": "PNG, JPG, WebP, GIF (最大5枚、各10MBまで)",
+        "upload_dropzone_remove": "削除",
         "btn_publish": "公開してDiscordに配信",
         "qna_title": "エンジニア Q&A フォーラム",
         "qna_desc": "WebポータルとDiscordの各言語フォーラムがリアルタイム双方向同期するコミュニティです。",
@@ -525,6 +534,16 @@ async def articles_page(
     t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
 
     articles = await db_get_articles(sort=sort, tag=tag, lang=lang_filter)
+    for art in articles:
+        v = art.get("image_url") or ""
+        if v.startswith("["):
+            try:
+                arr = json.loads(v)
+                art["thumb_url"] = arr[0] if arr else ""
+            except Exception:
+                art["thumb_url"] = v
+        else:
+            art["thumb_url"] = v
     return templates.TemplateResponse(
         request=request,
         name="articles.html",
@@ -575,6 +594,43 @@ async def upload_file_api(request: Request, file: UploadFile = File(...)):
     data_url = f"data:{content_type};base64,{b64_str}"
     return JSONResponse({"url": data_url, "filename": file.filename})
 
+async def process_uploaded_images(
+    image_files: Optional[List[UploadFile]] = None,
+    image_file: Optional[UploadFile] = None,
+    hidden_image_url: Optional[str] = None
+) -> str:
+    collected = []
+    if image_files:
+        for f in image_files[:5]:
+            if f and f.filename:
+                data = await f.read()
+                if data and len(data) > 0:
+                    mime = f.content_type or "image/png"
+                    b64 = base64.b64encode(data).decode("utf-8")
+                    collected.append(f"data:{mime};base64,{b64}")
+    if len(collected) < 5 and image_file and image_file.filename:
+        data = await image_file.read()
+        if data and len(data) > 0:
+            mime = image_file.content_type or "image/png"
+            b64 = base64.b64encode(data).decode("utf-8")
+            collected.append(f"data:{mime};base64,{b64}")
+    if not collected and hidden_image_url:
+        try:
+            parsed = json.loads(hidden_image_url)
+            if isinstance(parsed, list):
+                collected.extend([str(x) for x in parsed[:5] if x])
+            elif parsed:
+                collected.append(str(parsed))
+        except Exception:
+            if hidden_image_url.strip():
+                collected.append(hidden_image_url.strip())
+
+    if not collected:
+        return ""
+    if len(collected) == 1:
+        return collected[0]
+    return json.dumps(collected[:5])
+
 @app.post("/api/article/create")
 async def create_article(
     request: Request,
@@ -583,21 +639,14 @@ async def create_article(
     external_url: Optional[str] = Form(""),
     tags: Optional[str] = Form(""),
     image_url: Optional[str] = Form(""),
-    image_file: Optional[UploadFile] = File(None)
+    image_file: Optional[UploadFile] = File(None),
+    image_files: Optional[List[UploadFile]] = File(None)
 ):
     user = get_session_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
     
-    # Process uploaded image file if provided
-    final_image_url = image_url or ""
-    if image_file and image_file.filename:
-        file_bytes = await image_file.read()
-        if len(file_bytes) > 0:
-            content_type = image_file.content_type or "image/png"
-            b64_str = base64.b64encode(file_bytes).decode("utf-8")
-            final_image_url = f"data:{content_type};base64,{b64_str}"
-
+    final_image_url = await process_uploaded_images(image_files, image_file, image_url)
     ui_lang = resolve_lang(request, user)
     
     # 1. Generate multilang titles and summaries
@@ -663,6 +712,17 @@ async def article_detail(request: Request, article_id: int):
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
 
+    v = article.get("image_url") or ""
+    images_list = []
+    if v:
+        if v.startswith("["):
+            try:
+                images_list = json.loads(v)
+            except Exception:
+                images_list = [v]
+        else:
+            images_list = [v]
+
     threads = await db_get_article_threads(article_id)
     comments = await db_get_article_comments(article_id)
     content_html = markdown.markdown(article["content"], extensions=["fenced_code", "tables"])
@@ -672,6 +732,7 @@ async def article_detail(request: Request, article_id: int):
         name="article_detail.html",
         context={
             "article": article,
+            "images": images_list,
             "content_html": content_html,
             "threads": threads,
             "comments": comments,
@@ -719,6 +780,7 @@ async def add_article_comment(
 @app.get("/qna", response_class=HTMLResponse)
 async def qna_feed(
     request: Request,
+    sort: str = "latest",
     lang_filter: Optional[str] = None,
     solved_filter: Optional[str] = None
 ):
@@ -735,7 +797,17 @@ async def qna_feed(
     elif solved_filter == "open":
         is_solved = False
 
-    posts = await db_get_qna_posts(lang=lang_filter, solved=is_solved)
+    posts = await db_get_qna_posts(sort=sort, lang=lang_filter, solved=is_solved)
+    for p in posts:
+        v = p.get("image_url") or ""
+        if v.startswith("["):
+            try:
+                arr = json.loads(v)
+                p["thumb_url"] = arr[0] if arr else ""
+            except Exception:
+                p["thumb_url"] = v
+        else:
+            p["thumb_url"] = v
 
     return templates.TemplateResponse(
         request=request,
@@ -745,6 +817,7 @@ async def qna_feed(
             "user": user,
             "lang": ui_lang,
             "t": t,
+            "current_sort": sort,
             "current_lang_filter": lang_filter or "all",
             "current_solved_filter": solved_filter or "all",
             "active_tab": "qna",
@@ -780,20 +853,14 @@ async def create_qna(
     content: str = Form(...),
     post_lang: str = Form("en"),
     image_url: Optional[str] = Form(""),
-    image_file: Optional[UploadFile] = File(None)
+    image_file: Optional[UploadFile] = File(None),
+    image_files: Optional[List[UploadFile]] = File(None)
 ):
     user = get_session_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    final_image_url = image_url or ""
-    if image_file and image_file.filename:
-        file_bytes = await image_file.read()
-        if len(file_bytes) > 0:
-            content_type = image_file.content_type or "image/png"
-            b64_str = base64.b64encode(file_bytes).decode("utf-8")
-            final_image_url = f"data:{content_type};base64,{b64_str}"
-
+    final_image_url = await process_uploaded_images(image_files, image_file, image_url)
     forum_channel_id = str(QNA_FORUM_CHANNELS.get(post_lang, QNA_FORUM_CHANNELS["en"]))
 
     # 1. Insert into DB first
@@ -837,6 +904,17 @@ async def qna_detail(request: Request, post_id: int):
     if not post:
         raise HTTPException(status_code=404, detail="Q&A Post not found")
 
+    v = post.get("image_url") or ""
+    images_list = []
+    if v:
+        if v.startswith("["):
+            try:
+                images_list = json.loads(v)
+            except Exception:
+                images_list = [v]
+        else:
+            images_list = [v]
+
     answers = await db_get_qna_answers(post_id)
     content_html = markdown.markdown(post["content"], extensions=["fenced_code", "tables"])
 
@@ -845,6 +923,7 @@ async def qna_detail(request: Request, post_id: int):
         name="qna_detail.html",
         context={
             "post": post,
+            "images": images_list,
             "content_html": content_html,
             "answers": answers,
             "user": user,

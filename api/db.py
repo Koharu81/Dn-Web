@@ -129,7 +129,7 @@ async def db_add_article_comment(article_id: int, author_id: str, author_name: s
 
 
 # --- Q&A Posts ---
-async def db_get_qna_posts(lang: Optional[str] = None, solved: Optional[bool] = None, limit: int = 40, offset: int = 0) -> List[Dict[str, Any]]:
+async def db_get_qna_posts(sort: str = "latest", lang: Optional[str] = None, solved: Optional[bool] = None, limit: int = 40, offset: int = 0) -> List[Dict[str, Any]]:
     conn = await get_db_connection()
     try:
         query = """
@@ -149,7 +149,12 @@ async def db_get_qna_posts(lang: Optional[str] = None, solved: Optional[bool] = 
         if clauses:
             query += " WHERE " + " AND ".join(clauses)
             
-        query += " GROUP BY q.id ORDER BY q.created_at DESC "
+        query += " GROUP BY q.id "
+        if sort == "popular":
+            query += " ORDER BY COUNT(a.id) DESC, q.created_at DESC "
+        else:
+            query += " ORDER BY q.created_at DESC "
+
         params.extend([limit, offset])
         query += f" LIMIT ${len(params)-1} OFFSET ${len(params)}"
         

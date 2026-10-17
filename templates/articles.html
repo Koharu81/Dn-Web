@@ -536,8 +536,8 @@
             </div>
           </div>
 
-          {% if art.image_url %}
-            <img src="{{ art.image_url }}" alt="thumb" class="article-thumb" loading="lazy">
+          {% if art.thumb_url or art.image_url %}
+            <img src="{{ art.thumb_url or art.image_url }}" alt="thumb" class="article-thumb" loading="lazy">
           {% endif %}
         </article>
       {% endfor %}

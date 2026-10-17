@@ -198,20 +198,19 @@
         <input type="text" name="title" class="form-input" placeholder="{{ t.qna_input_title_placeholder }}" required>
       </div>
 
-      <!-- File Upload Dropzone (Replaces plain URL) -->
+      <!-- File Upload Dropzone (Supports up to 5 files) -->
       <div class="form-group">
         <label class="form-label">{{ t.input_image_url }}</label>
         <div class="file-upload-dropzone" id="dropzone" onclick="document.getElementById('imageFileInput').click()">
-          <input type="file" name="image_file" id="imageFileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
+          <input type="file" name="image_files" id="imageFileInput" accept="image/*" multiple style="display: none;" onchange="handleFileSelect(this)">
           <input type="hidden" name="image_url" id="hiddenImageUrl" value="">
           <div id="dropzonePrompt">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color: #7983F5; margin-bottom: 0.5rem;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-            <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem;">클릭하여 스크린샷/이미지 파일을 선택하거나 여기로 드래그하세요</p>
-            <p style="font-size: 0.75rem; color: var(--text-dim);">PNG, JPG, WebP, GIF (최대 10MB)</p>
+            <p style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem;">{{ t.upload_dropzone_title }}</p>
+            <p style="font-size: 0.75rem; color: var(--text-dim);">{{ t.upload_dropzone_subtitle }}</p>
           </div>
-          <div id="dropzonePreview" style="display: none; position: relative;">
-            <img id="previewImg" src="" alt="preview" style="max-height: 180px; max-width: 100%; border-radius: 6px; border: 1px solid var(--border-subtle);">
-            <button type="button" onclick="clearSelectedFile(event)" class="btn btn-outline" style="position: absolute; top: 8px; right: 8px; padding: 0.25rem 0.55rem; font-size: 0.75rem; background: rgba(0,0,0,0.75);">삭제</button>
+          <div id="dropzonePreview" style="display: none; width: 100%; margin-top: 0.5rem;">
+            <div id="previewGrid" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;"></div>
           </div>
         </div>
       </div>
@@ -235,38 +234,95 @@
   </footer>
 
   <script>
+    let selectedFiles = [];
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('imageFileInput');
     const hiddenUrl = document.getElementById('hiddenImageUrl');
     const promptBox = document.getElementById('dropzonePrompt');
     const previewBox = document.getElementById('dropzonePreview');
-    const previewImg = document.getElementById('previewImg');
+    const previewGrid = document.getElementById('previewGrid');
 
-    function handleFile(file) {
-      if (!file || !file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        hiddenUrl.value = e.target.result;
-        previewImg.src = e.target.result;
+    function updatePreview() {
+      previewGrid.innerHTML = '';
+      if (selectedFiles.length === 0) {
+        previewBox.style.display = 'none';
+        promptBox.style.display = 'block';
+        hiddenUrl.value = '';
+        return;
+      }
+      previewBox.style.display = 'block';
+      if (selectedFiles.length >= 5) {
         promptBox.style.display = 'none';
-        previewBox.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
+      } else {
+        promptBox.style.display = 'block';
+      }
+
+      const urls = [];
+      selectedFiles.forEach((item, index) => {
+        urls.push(item.dataUrl);
+        const card = document.createElement('div');
+        card.style.cssText = 'position: relative; width: 110px; height: 90px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-subtle); background: #000;';
+        
+        const img = document.createElement('img');
+        img.src = item.dataUrl;
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.innerText = '✕';
+        removeBtn.style.cssText = 'position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; width: 22px; height: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; line-height: 1;';
+        removeBtn.onclick = function(e) {
+          e.stopPropagation();
+          removeFile(index);
+        };
+
+        card.appendChild(img);
+        card.appendChild(removeBtn);
+        previewGrid.appendChild(card);
+      });
+
+      hiddenUrl.value = JSON.stringify(urls);
+      syncInputFiles();
+    }
+
+    function syncInputFiles() {
+      try {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(f => {
+          if (f.file) dt.items.add(f.file);
+        });
+        fileInput.files = dt.files;
+      } catch (e) {}
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      updatePreview();
+    }
+
+    function addFiles(files) {
+      const remainingSlots = 5 - selectedFiles.length;
+      if (remainingSlots <= 0) return;
+      const toProcess = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, remainingSlots);
+
+      let processed = 0;
+      toProcess.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          selectedFiles.push({ file: file, dataUrl: e.target.result });
+          processed++;
+          if (processed === toProcess.length) {
+            updatePreview();
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     function handleFileSelect(input) {
-      if (input.files && input.files[0]) {
-        handleFile(input.files[0]);
+      if (input.files && input.files.length > 0) {
+        addFiles(input.files);
       }
-    }
-
-    function clearSelectedFile(e) {
-      e.stopPropagation();
-      fileInput.value = '';
-      hiddenUrl.value = '';
-      previewImg.src = '';
-      previewBox.style.display = 'none';
-      promptBox.style.display = 'block';
     }
 
     ['dragenter', 'dragover'].forEach(name => {
@@ -286,10 +342,11 @@
     });
 
     dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const dt = e.dataTransfer;
-      if (dt.files && dt.files[0]) {
-        fileInput.files = dt.files;
-        handleFile(dt.files[0]);
+      if (dt.files && dt.files.length > 0) {
+        addFiles(dt.files);
       }
     });
   </script>

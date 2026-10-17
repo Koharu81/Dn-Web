@@ -173,6 +173,7 @@
     .btn-outline { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-main); }
     .btn-outline:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.05); }
 
+    /* Feed Subnav */
     .top-subnav {
       max-width: 1040px;
       margin: 1.5rem auto 0;
@@ -210,26 +211,28 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border-subtle);
     }
-    .qna-container {
+
+    /* Feed Container */
+    .feed-container {
       max-width: 1040px;
-      width: 100%;
-      margin: 1.5rem auto 5rem;
+      margin: 1.25rem auto 5rem;
       padding: 0 1.5rem;
+      width: 100%;
       flex: 1;
     }
-    .qna-card {
+    .article-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.1rem;
+      padding: 1.15rem 1.25rem;
+      margin-bottom: 0.75rem;
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 1.25rem 1.4rem;
-      margin-bottom: 0.85rem;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1.25rem;
       transition: all 0.2s ease;
+      position: relative;
     }
-    .qna-card:hover {
+    .article-item:hover {
       border-color: var(--border-strong);
       transform: translateY(-1px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -239,44 +242,77 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-width: 60px;
-      padding: 0.5rem 0.6rem;
+      min-width: 46px;
+      padding: 0.45rem 0.4rem;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
       text-align: center;
+      flex-shrink: 0;
     }
     .qna-stats-num {
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 800;
       color: var(--text-main);
     }
     .qna-stats-label {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: var(--text-dim);
       text-transform: uppercase;
       font-weight: 600;
     }
-    .qna-title {
-      font-size: 1.1rem;
+    .article-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .article-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .article-title {
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--text-main);
       text-decoration: none;
       line-height: 1.4;
-      margin-bottom: 0.4rem;
-      display: inline-block;
+      transition: color 0.15s ease;
     }
-    .qna-title:hover {
+    .article-title:hover {
       color: #FFFFFF;
       text-decoration: underline;
     }
-    .qna-meta {
+    .article-summary {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 0.65rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .article-meta {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 0.75rem;
-      font-size: 0.8rem;
+      gap: 0.85rem;
+      font-size: 0.775rem;
       color: var(--text-dim);
+    }
+    .meta-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .meta-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
     }
     .lang-pill {
       font-size: 0.7rem;
@@ -288,33 +324,32 @@
     .lang-pill-ko { background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); }
     .lang-pill-en { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
     .lang-pill-ja { background: rgba(244, 63, 94, 0.15); color: #FB7185; border: 1px solid rgba(244, 63, 94, 0.3); }
-    .discord-forum-tag {
+    .thread-sync-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
-      font-size: 0.75rem;
+      gap: 0.35rem;
+      font-size: 0.725rem;
       color: #7983F5;
       background: rgba(88, 101, 242, 0.08);
       padding: 0.15rem 0.5rem;
       border-radius: 4px;
       border: 1px solid rgba(88, 101, 242, 0.2);
     }
-    .empty-card-wrapper {
-      max-width: 680px;
-      margin: 4rem auto;
-      text-align: center;
-      padding: 3.5rem 2rem;
-      background: var(--bg-card);
-      border: 1px dashed var(--border-subtle);
-      border-radius: var(--radius-md);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    .article-thumb {
+      width: 100px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      margin-left: 0.5rem;
+      flex-shrink: 0;
     }
     footer {
       border-top: 1px solid var(--border-subtle);
-      padding: 2rem 1.5rem;
+      padding: 2.5rem 1.5rem;
       text-align: center;
       color: var(--text-dim);
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       margin-top: auto;
     }
   </style>
@@ -327,7 +362,7 @@
     <a href="/" class="brand">
       <img src="/static/logo.png" alt="DN" class="brand-logo">
       <span class="brand-title">DevNetwork</span>
-      <span class="brand-pill">Q&A Forum</span>
+      <span class="brand-pill">Tech Hub</span>
     </a>
 
     <nav style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
@@ -391,44 +426,66 @@
     </div>
   </header>
 
-  <!-- Filter Subnav (Clean alignment) -->
+  <!-- Sub Navigation & Filters (Tech News Layout Match) -->
   <div class="top-subnav">
     <div class="feed-tabs">
-      <a href="/qna?lang_filter=all" class="feed-tab {% if current_lang_filter == 'all' %}active{% endif %}">ALL</a>
-      <a href="/qna?lang_filter=ko" class="feed-tab {% if current_lang_filter == 'ko' %}active{% endif %}">KO</a>
-      <a href="/qna?lang_filter=en" class="feed-tab {% if current_lang_filter == 'en' %}active{% endif %}">EN</a>
-      <a href="/qna?lang_filter=ja" class="feed-tab {% if current_lang_filter == 'ja' %}active{% endif %}">JA</a>
+      <a href="/qna?sort=latest&lang_filter={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'latest' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>{{ t.feed_tab_latest }}</span>
+      </a>
+      <a href="/qna?sort=popular&lang_filter={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'popular' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        <span>{{ t.feed_tab_popular }}</span>
+      </a>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-      <button onclick="syncFromDiscord()" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+    <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; gap: 0.4rem; align-items: center;">
+      <a href="/qna?sort={{ current_sort }}&lang_filter=all" style="color: {% if current_lang_filter == 'all' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">ALL</a>
+      <span>·</span>
+      <a href="/qna?sort={{ current_sort }}&lang_filter=ko" style="color: {% if current_lang_filter == 'ko' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">KO</a>
+      <span>·</span>
+      <a href="/qna?sort={{ current_sort }}&lang_filter=en" style="color: {% if current_lang_filter == 'en' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">EN</a>
+      <span>·</span>
+      <a href="/qna?sort={{ current_sort }}&lang_filter=ja" style="color: {% if current_lang_filter == 'ja' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">JA</a>
+      <span style="margin: 0 0.35rem; color: var(--border-subtle);">|</span>
+      <button onclick="syncFromDiscord()" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 4px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         <span id="syncBtnText">{{ t.sync_discord }}</span>
       </button>
     </div>
   </div>
 
-  <main class="qna-container">
+  <!-- Q&A Feed (Tech News Card Match) -->
+  <main class="feed-container">
     {% if posts %}
       {% for p in posts %}
-        <div class="qna-card">
-          <div style="flex: 1; min-width: 0;">
-            <div>
-              <span class="lang-pill lang-pill-{{ p.lang }}">{{ p.lang }}</span>
-              <a href="/qna/{{ p.id }}" class="qna-title" style="margin-left: 0.4rem;">{{ p.title }}</a>
+        <article class="article-item">
+          <div class="qna-stats-box">
+            <span class="qna-stats-num" style="color: {% if p.answer_count > 0 %}var(--accent-emerald){% else %}var(--text-main){% endif %};">{{ p.answer_count }}</span>
+            <span class="qna-stats-label">{{ t.answers }}</span>
+          </div>
+
+          <div class="article-content">
+            <div class="article-title-row">
+              <a href="/qna/{{ p.id }}" class="article-title">{{ p.title }}</a>
             </div>
 
-            <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; margin: 0.4rem 0 0.65rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-              {{ p.content }}
-            </p>
+            <div class="article-summary">{{ p.content | truncate(140) }}</div>
 
-            <div class="qna-meta">
-              <span>{{ p.author_name }}</span>
+            <div class="article-meta">
+              <span class="meta-author">
+                {% if p.author_avatar %}
+                  <img src="{{ p.author_avatar }}" alt="{{ p.author_name }}" class="meta-avatar">
+                {% endif %}
+                <span>{{ p.author_name }}</span>
+              </span>
               <span>·</span>
               <span>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</span>
-              
+              <span>·</span>
+              <span class="lang-pill lang-pill-{{ p.lang }}">{{ p.lang | upper }}</span>
+
               {% if p.discord_thread_id %}
-                <span class="discord-forum-tag">
+                <span class="thread-sync-badge">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028z"/></svg>
                   <span>{{ t.discord_forum_synced }}</span>
                 </span>
@@ -436,16 +493,15 @@
             </div>
           </div>
 
-          <div class="qna-stats-box">
-            <span class="qna-stats-num">{{ p.answer_count }}</span>
-            <span class="qna-stats-label">{{ t.answers }}</span>
-          </div>
-        </div>
+          {% if p.thumb_url or p.image_url %}
+            <img src="{{ p.thumb_url or p.image_url }}" alt="thumb" class="article-thumb" loading="lazy">
+          {% endif %}
+        </article>
       {% endfor %}
     {% else %}
-      <div class="empty-card-wrapper">
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.25rem;">{{ t.qna_empty }}</p>
-        <a href="/qna/new" class="btn btn-primary" style="padding: 0.65rem 1.4rem;">{{ t.ask_question }}</a>
+      <div style="text-align: center; padding: 4rem 1.5rem; background: var(--bg-card); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">{{ t.qna_empty }}</p>
+        <a href="/qna/new" class="btn btn-primary">{{ t.ask_question }}</a>
       </div>
     {% endif %}
   </main>
