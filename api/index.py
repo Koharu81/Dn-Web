@@ -86,7 +86,14 @@ TRANSLATIONS = {
         "your_answer": "Your Answer",
         "submit_answer": "Post Answer to Discord & Web",
         "view_in_discord": "View in Discord Forum",
-        "sync_discord": "Sync from Discord Forums"
+        "sync_discord": "Sync from Discord Forums",
+        "landing_pill": "Global Engineering Community & Dev Hub",
+        "landing_hero_title": "Enterprise Engineering Hub\nfor Global Developers",
+        "landing_hero_desc": "Connecting developers across English, Korean, and Japanese with real-time translation, GeekNews style articles, and Discord forum synchronization.",
+        "landing_cta": "Login with Discord to Access Community",
+        "landing_preview_articles": "Latest Engineering Articles",
+        "landing_preview_qna": "Live Community Q&A",
+        "landing_login_to_view": "Discord login is required to read full articles and participate in discussions."
     },
     "ko": {
         "nav_articles": "아티클 / 테크뉴스",
@@ -127,7 +134,14 @@ TRANSLATIONS = {
         "your_answer": "답변 작성하기",
         "submit_answer": "답변 등록 (웹 및 디스코드 동시 전송)",
         "view_in_discord": "디스코드 포럼에서 확인",
-        "sync_discord": "디스코드 포럼 동기화"
+        "sync_discord": "디스코드 포럼 동기화",
+        "landing_pill": "글로벌 IT 커뮤니티 & 엔지니어링 허브",
+        "landing_hero_title": "개발자를 위한\n글로벌 엔지니어링 네트워크",
+        "landing_hero_desc": "한국어, 영어, 일본어 3개 언어로 실시간 상호 연결되는 테크 아티클과 Q&A 포럼. 디스코드로 로그인하여 글로벌 개발자 커뮤니티에 참여하세요.",
+        "landing_cta": "디스코드로 로그인하여 시작하기",
+        "landing_preview_articles": "최신 테크 아티클",
+        "landing_preview_qna": "실시간 커뮤니티 Q&A",
+        "landing_login_to_view": "전체 글 열람 및 커뮤니티 참여는 디스코드 로그인이 필요합니다."
     },
     "ja": {
         "nav_articles": "記事・テックニュース",
@@ -168,7 +182,14 @@ TRANSLATIONS = {
         "your_answer": "回答を投稿",
         "submit_answer": "回答を送信（WebおよびDiscordに反映）",
         "view_in_discord": "Discordフォーラムで確認",
-        "sync_discord": "Discordフォーラムと同期"
+        "sync_discord": "Discordフォーラムと同期",
+        "landing_pill": "グローバルITコミュニティ＆開発ハブ",
+        "landing_hero_title": "エンジニアのための\nグローバル技術ネットワーク",
+        "landing_hero_desc": "英語、韓国語、日本語の3言語でリアルタイム相互接続する技術記事とQ&Aフォーラム。Discordでログインしてコミュニティに参加しましょう。",
+        "landing_cta": "Discordでログインして開始",
+        "landing_preview_articles": "最新の技術記事",
+        "landing_preview_qna": "リアルタイム Q&A",
+        "landing_login_to_view": "記事の全文閲覧や投稿にはDiscordログインが必要です。"
     }
 }
 
@@ -254,14 +275,14 @@ def resolve_lang(request: Request, user: Optional[Dict[str, Any]]) -> str:
         return cookie_lang
     if user and user.get("lang") in ("en", "ko", "ja"):
         return user["lang"]
-    return "en"
+    return "ko" # Default is Korean!
 
 
 # ==========================================
 # 1. ARTICLES / GEEKNEWS FEED
 # ==========================================
 @app.get("/", response_class=HTMLResponse)
-async def articles_feed(
+async def main_page(
     request: Request,
     sort: str = "latest",
     tag: Optional[str] = None,
@@ -269,13 +290,32 @@ async def articles_feed(
 ):
     user = get_session_user(request)
     ui_lang = resolve_lang(request, user)
-    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
 
+    if not user:
+        # Non-logged in users see the official DevNetwork Landing Page
+        articles_preview = await db_get_articles(limit=4)
+        qna_preview = await db_get_qna_posts(limit=4)
+        response = templates.TemplateResponse(
+            request=request,
+            name="landing.html",
+            context={
+                "user": None,
+                "articles_preview": articles_preview,
+                "qna_preview": qna_preview,
+                "lang": ui_lang,
+                "t": t,
+                "base_url": APP_BASE_URL
+            }
+        )
+        response.set_cookie(key="dn_lang", value=ui_lang, max_age=31536000, httponly=False)
+        return response
+
+    # Logged-in users see the full Articles Feed
     articles = await db_get_articles(sort=sort, tag=tag, lang=lang_filter)
-    
     response = templates.TemplateResponse(
         request=request,
-        name="index.html",
+        name="articles.html",
         context={
             "articles": articles,
             "user": user,
@@ -290,6 +330,37 @@ async def articles_feed(
     )
     response.set_cookie(key="dn_lang", value=ui_lang, max_age=31536000, httponly=False)
     return response
+
+@app.get("/articles", response_class=HTMLResponse)
+async def articles_page(
+    request: Request,
+    sort: str = "latest",
+    tag: Optional[str] = None,
+    lang_filter: Optional[str] = None
+):
+    user = get_session_user(request)
+    if not user:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+
+    ui_lang = resolve_lang(request, user)
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
+
+    articles = await db_get_articles(sort=sort, tag=tag, lang=lang_filter)
+    return templates.TemplateResponse(
+        request=request,
+        name="articles.html",
+        context={
+            "articles": articles,
+            "user": user,
+            "lang": ui_lang,
+            "t": t,
+            "current_sort": sort,
+            "current_tag": tag or "",
+            "current_lang_filter": lang_filter or "all",
+            "active_tab": "articles",
+            "base_url": APP_BASE_URL
+        }
+    )
 
 @app.get("/write", response_class=HTMLResponse)
 async def write_article_page(request: Request):
@@ -376,8 +447,15 @@ async def create_article(
 @app.get("/article/{article_id}", response_class=HTMLResponse)
 async def article_detail(request: Request, article_id: int):
     user = get_session_user(request)
+    user_agent = request.headers.get("user-agent", "").lower()
+
+    # Discord crawler or bot can preview the meta tags & component embeds
+    is_crawler = any(b in user_agent for b in ("discord", "bot", "crawler", "spider", "twitter"))
+    if not user and not is_crawler:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+
     ui_lang = resolve_lang(request, user)
-    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
 
     article = await db_get_article(article_id)
     if not article:
@@ -443,8 +521,11 @@ async def qna_feed(
     solved_filter: Optional[str] = None
 ):
     user = get_session_user(request)
+    if not user:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+
     ui_lang = resolve_lang(request, user)
-    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
 
     is_solved = None
     if solved_filter == "solved":
@@ -533,8 +614,13 @@ async def create_qna(
 @app.get("/qna/{post_id}", response_class=HTMLResponse)
 async def qna_detail(request: Request, post_id: int):
     user = get_session_user(request)
+    user_agent = request.headers.get("user-agent", "").lower()
+    is_crawler = any(b in user_agent for b in ("discord", "bot", "crawler", "spider", "twitter"))
+    if not user and not is_crawler:
+        return RedirectResponse(url="/auth/discord", status_code=303)
+
     ui_lang = resolve_lang(request, user)
-    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["en"])
+    t = TRANSLATIONS.get(ui_lang, TRANSLATIONS["ko"])
 
     post = await db_get_qna_post(post_id)
     if not post:

@@ -7,9 +7,104 @@
 
   <link rel="icon" type="image/png" href="/static/favicon.png">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="/static/style.css">
-
   <style>
+    :root {
+      --bg-page: #000000;
+      --bg-surface: #0B0E14;
+      --bg-card: #11141A;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --accent-emerald: #10B981;
+      --accent-discord: #5865F2;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .bg-ambient-top {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 1200px;
+      height: 400px;
+      background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), rgba(88, 101, 242, 0.04), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(0, 0, 0, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-logo { width: 28px; height: 28px; border-radius: 6px; }
+    .brand-title { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; }
+    .brand-pill {
+      font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .custom-dropdown { position: relative !important; display: inline-block !important; }
+    .custom-dropdown-btn {
+      display: inline-flex !important; align-items: center !important; gap: 0.5rem !important;
+      background: rgba(255, 255, 255, 0.04) !important; border: 1px solid var(--border-subtle) !important;
+      color: var(--text-main) !important; padding: 0.45rem 0.85rem !important; border-radius: var(--radius-sm) !important;
+      font-size: 0.85rem !important; font-weight: 500 !important; cursor: pointer !important; outline: none !important;
+      font-family: inherit !important; transition: all 0.2s ease !important;
+    }
+    .custom-dropdown-btn:hover { border-color: var(--border-strong) !important; background: rgba(255, 255, 255, 0.08) !important; }
+    .custom-dropdown-menu {
+      display: none !important; position: absolute !important; top: calc(100% + 6px) !important; right: 0 !important;
+      min-width: 175px !important; background: #11141A !important; border: 1px solid var(--border-strong) !important;
+      border-radius: var(--radius-sm) !important; padding: 0.35rem !important; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85) !important;
+      z-index: 9999 !important;
+    }
+    .custom-dropdown.open .custom-dropdown-menu { display: flex !important; flex-direction: column !important; }
+    .custom-dropdown-item {
+      display: flex !important; align-items: center !important; justify-content: space-between !important;
+      padding: 0.55rem 0.75rem !important; border-radius: 5px !important; font-size: 0.825rem !important;
+      color: var(--text-muted) !important; cursor: pointer !important; transition: all 0.15s ease !important;
+    }
+    .custom-dropdown-item:hover { background: rgba(255, 255, 255, 0.08) !important; color: var(--text-main) !important; }
+    .custom-dropdown-item.active { color: var(--text-main) !important; font-weight: 600 !important; background: rgba(255, 255, 255, 0.05) !important; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.1rem; border-radius: var(--radius-sm);
+      font-weight: 600; font-size: 0.875rem; text-decoration: none; cursor: pointer; border: none; font-family: inherit; transition: all 0.2s ease;
+    }
+    .btn-primary { background: #FFFFFF; color: #000000; }
+    .btn-primary:hover { background: #E2E8F0; transform: translateY(-1px); }
+    .btn-discord { background: #5865F2; color: #FFFFFF; }
+    .btn-discord:hover { background: #4752C4; transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-main); }
+    .btn-outline:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.05); }
+
     .top-subnav {
       max-width: 1040px;
       margin: 1.5rem auto 0;
@@ -233,6 +328,23 @@
   </footer>
 
   <script>
+    function toggleLangDropdown(event) {
+      if (event) event.stopPropagation();
+      const dropdown = document.getElementById('langDropdown');
+      if (dropdown) dropdown.classList.toggle('open');
+    }
+
+    function selectLanguage(lang) {
+      window.location.href = '/qna?lang=' + lang;
+    }
+
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('langDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+      }
+    });
+
     async function syncFromDiscord() {
       const btn = document.getElementById('syncBtnText');
       btn.innerText = 'Syncing...';

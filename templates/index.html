@@ -4,220 +4,377 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DevNetwork - Global Engineering Tech & Community</title>
-  
-  <meta property="og:title" content="DevNetwork Tech News & Articles">
+
+  <meta property="og:title" content="DevNetwork - Global Engineering Community">
   <meta property="og:description" content="Connecting developers worldwide across English, Korean, and Japanese. GeekNews style engineering articles and community Q&A.">
   <meta property="og:image" content="{{ base_url }}/static/banner.png">
+  <meta property="og:url" content="{{ base_url }}/">
   <meta property="og:type" content="website">
 
   <link rel="icon" type="image/png" href="/static/favicon.png">
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="/static/style.css">
-  
+
   <style>
-    /* Feed Navigation Bar */
-    .top-subnav {
-      max-width: 1040px;
-      margin: 1.5rem auto 0;
-      padding: 0 1.5rem;
+    :root {
+      --bg-page: #000000;
+      --bg-surface: #0B0E14;
+      --bg-card: #11141A;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --accent-emerald: #10B981;
+      --accent-discord: #5865F2;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .bg-ambient-top {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 1200px;
+      height: 450px;
+      background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.1), rgba(88, 101, 242, 0.06), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(0, 0, 0, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 0.75rem;
     }
-    .feed-tabs {
+    .brand {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-    }
-    .feed-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.45rem 0.85rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
+      gap: 0.65rem;
       text-decoration: none;
-      transition: all 0.15s ease;
-    }
-    .feed-tab:hover {
       color: var(--text-main);
-      background: rgba(255, 255, 255, 0.04);
     }
-    .feed-tab.active {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border-subtle);
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
     }
-    .feed-actions {
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+    .brand-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .nav-actions {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-
-    /* GeekNews Style Feed Container */
-    .feed-container {
-      max-width: 1040px;
-      margin: 1.25rem auto 5rem;
-      padding: 0 1.5rem;
+    /* Custom Dropdown (Strictly styled, zero glitches) */
+    .custom-dropdown {
+      position: relative !important;
+      display: inline-block !important;
     }
-    .article-item {
+    .custom-dropdown-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 0.5rem !important;
+      background: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid var(--border-subtle) !important;
+      color: var(--text-main) !important;
+      padding: 0.45rem 0.85rem !important;
+      border-radius: var(--radius-sm) !important;
+      font-size: 0.85rem !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      outline: none !important;
+      font-family: inherit !important;
+      transition: all 0.2s ease !important;
+    }
+    .custom-dropdown-btn:hover {
+      border-color: var(--border-strong) !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+    .custom-dropdown-menu {
+      display: none !important;
+      position: absolute !important;
+      top: calc(100% + 6px) !important;
+      right: 0 !important;
+      min-width: 175px !important;
+      background: #11141A !important;
+      border: 1px solid var(--border-strong) !important;
+      border-radius: var(--radius-sm) !important;
+      padding: 0.35rem !important;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85) !important;
+      z-index: 9999 !important;
+    }
+    .custom-dropdown.open .custom-dropdown-menu {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .custom-dropdown-item {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 0.55rem 0.75rem !important;
+      border-radius: 5px !important;
+      font-size: 0.825rem !important;
+      color: var(--text-muted) !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+      user-select: none !important;
+    }
+    .custom-dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: var(--text-main) !important;
+    }
+    .custom-dropdown-item.active {
+      color: var(--text-main) !important;
+      font-weight: 600 !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.15rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .btn-primary { background: #FFFFFF; color: #000000; }
+    .btn-primary:hover { background: #E2E8F0; transform: translateY(-1px); }
+    .btn-discord { background: #5865F2; color: #FFFFFF; }
+    .btn-discord:hover { background: #4752C4; transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+    .btn-outline:hover {
+      border-color: var(--border-strong);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 3.5rem 1.5rem 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .banner-container {
+      max-width: 720px;
+      margin: 0 auto 2.5rem;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
+    }
+    .banner-img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.2;
+      margin-bottom: 1.25rem;
+      color: var(--text-main);
+    }
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+    .cta-box {
       display: flex;
-      align-items: flex-start;
-      gap: 1.1rem;
-      padding: 1.15rem 1.25rem;
-      margin-bottom: 0.75rem;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 4rem;
+    }
+
+    /* Feature Pillars */
+    .features-section {
+      max-width: 1080px;
+      margin: 0 auto 4rem;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+    .section-title-wrap {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .section-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 4rem;
+    }
+    .pillar-card {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
+      padding: 1.75rem;
       transition: all 0.2s ease;
-      position: relative;
     }
-    .article-item:hover {
+    .pillar-card:hover {
       border-color: var(--border-strong);
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
     }
-    .upvote-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-width: 44px;
-      padding: 0.5rem 0.35rem;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      outline: none;
-      font-family: inherit;
-    }
-    .upvote-btn:hover {
-      color: var(--text-main);
-      border-color: var(--accent-emerald);
-      background: rgba(16, 185, 129, 0.06);
-    }
-    .upvote-btn.voted {
-      color: var(--accent-emerald);
-      border-color: var(--accent-emerald);
-      background: rgba(16, 185, 129, 0.1);
-    }
-    .upvote-count {
-      font-size: 0.825rem;
-      font-weight: 700;
-      margin-top: 0.2rem;
-    }
-    .article-content {
-      flex: 1;
-      min-width: 0;
-    }
-    .article-title-row {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.35rem;
-    }
-    .article-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text-main);
-      text-decoration: none;
-      line-height: 1.4;
-      transition: color 0.15s ease;
-    }
-    .article-title:hover {
-      color: #FFFFFF;
-      text-decoration: underline;
-    }
-    .external-domain {
-      font-size: 0.775rem;
-      color: var(--text-dim);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      text-decoration: none;
-    }
-    .external-domain:hover {
-      color: var(--text-muted);
-    }
-    .article-summary {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      line-height: 1.55;
-      margin-bottom: 0.65rem;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .article-meta {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.85rem;
-      font-size: 0.775rem;
-      color: var(--text-dim);
-    }
-    .meta-author {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-    .meta-avatar {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-    }
-    .tag-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.15rem 0.5rem;
+    .pillar-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
-      border-radius: 4px;
-      font-size: 0.725rem;
-      color: var(--text-muted);
-      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      color: var(--accent-emerald);
     }
-    .tag-badge:hover {
-      background: rgba(255, 255, 255, 0.08);
+    .pillar-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.65rem;
+    }
+    .pillar-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Previews */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 5rem;
+    }
+    .preview-column {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+    }
+    .preview-col-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .preview-col-title {
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .preview-item {
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.65rem;
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s ease;
+    }
+    .preview-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-strong);
+    }
+    .preview-item-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
       color: var(--text-main);
     }
-    .thread-sync-badge {
-      display: inline-flex;
+    .preview-item-meta {
+      font-size: 0.775rem;
+      color: var(--text-dim);
+      display: flex;
       align-items: center;
-      gap: 0.35rem;
-      font-size: 0.725rem;
-      color: var(--accent-emerald);
-      background: rgba(16, 185, 129, 0.08);
-      padding: 0.15rem 0.5rem;
-      border-radius: 4px;
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      gap: 0.5rem;
     }
-    .article-thumb {
-      width: 100px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-      margin-left: 0.5rem;
-      flex-shrink: 0;
-    }
-    .empty-state {
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 2.5rem 1.5rem;
       text-align: center;
-      padding: 4rem 1.5rem;
-      color: var(--text-muted);
-      background: var(--bg-card);
-      border: 1px dashed var(--border-subtle);
-      border-radius: var(--radius-md);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+      .preview-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 2.25rem; }
     }
   </style>
 </head>
@@ -232,26 +389,8 @@
       <span class="brand-pill">Tech Hub</span>
     </a>
 
-    <!-- Top Navigation Links -->
-    <nav style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
-      <a href="/" class="feed-tab active">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        <span>{{ t.nav_articles }}</span>
-      </a>
-      <a href="/qna" class="feed-tab">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <span>{{ t.nav_qna }}</span>
-      </a>
-    </nav>
-
     <div class="nav-actions">
-      <!-- Write Article Button -->
-      <a href="/write" class="btn btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        <span>{{ t.nav_submit }}</span>
-      </a>
-
-      <!-- Custom Language Dropdown -->
+      <!-- Language Dropdown -->
       <div class="custom-dropdown" id="langDropdown">
         <button class="custom-dropdown-btn" onclick="toggleLangDropdown(event)" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -265,18 +404,16 @@
             {% else %}English (US)
             {% endif %}
           </span>
-          <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
         <div class="custom-dropdown-menu" id="langMenu">
-          <div class="custom-dropdown-item {% if lang == 'en' %}active{% endif %}" onclick="selectLanguage('en')">
-            <span>English (US)</span>
-            {% if lang == 'en' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
-          </div>
           <div class="custom-dropdown-item {% if lang == 'ko' %}active{% endif %}" onclick="selectLanguage('ko')">
             <span>한국어 (Korean)</span>
             {% if lang == 'ko' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
+          </div>
+          <div class="custom-dropdown-item {% if lang == 'en' %}active{% endif %}" onclick="selectLanguage('en')">
+            <span>English (US)</span>
+            {% if lang == 'en' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
           </div>
           <div class="custom-dropdown-item {% if lang == 'ja' %}active{% endif %}" onclick="selectLanguage('ja')">
             <span>日本語 (Japanese)</span>
@@ -285,132 +422,127 @@
         </div>
       </div>
 
-      {% if user %}
-        <div style="display: flex; align-items: center; gap: 0.65rem;">
-          <img src="{{ user.avatar_url }}" alt="avatar" style="width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-          <span style="font-weight: 600; font-size: 0.85rem;">{{ user.username }}</span>
-          <a href="/auth/logout" class="btn btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">{{ t.logout }}</a>
-        </div>
-      {% else %}
-        <a href="/auth/discord" class="btn btn-discord">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-          </svg>
-          <span>{{ t.login_discord }}</span>
-        </a>
-      {% endif %}
+      <a href="/auth/discord" class="btn btn-discord">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+        <span>{{ t.login_discord }}</span>
+      </a>
     </div>
   </header>
 
-  <!-- Sub Navigation & Filters -->
-  <div class="top-subnav">
-    <div class="feed-tabs">
-      <a href="/?sort=latest&lang={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'latest' %}active{% endif %}">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        <span>{{ t.feed_tab_latest }}</span>
-      </a>
-      <a href="/?sort=popular&lang={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'popular' %}active{% endif %}">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-        <span>{{ t.feed_tab_popular }}</span>
-      </a>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="banner-container">
+      <img src="/static/banner.png" alt="DevNetwork Banner" class="banner-img">
     </div>
 
-    <div class="feed-actions">
-      <!-- Language Filter -->
-      <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; gap: 0.4rem; align-items: center;">
-        <a href="/?sort={{ current_sort }}&lang_filter=all" style="color: {% if current_lang_filter == 'all' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">ALL</a>
-        <span>·</span>
-        <a href="/?sort={{ current_sort }}&lang_filter=ko" style="color: {% if current_lang_filter == 'ko' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">KO</a>
-        <span>·</span>
-        <a href="/?sort={{ current_sort }}&lang_filter=en" style="color: {% if current_lang_filter == 'en' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">EN</a>
-        <span>·</span>
-        <a href="/?sort={{ current_sort }}&lang_filter=ja" style="color: {% if current_lang_filter == 'ja' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">JA</a>
-      </div>
+    <div class="hero-pill">
+      <span>{{ t.landing_pill }}</span>
     </div>
-  </div>
 
-  <!-- Articles Feed -->
-  <main class="feed-container">
-    {% if articles %}
-      {% for art in articles %}
-        <article class="article-item">
-          <!-- Upvote Button -->
-          <button class="upvote-btn" onclick="handleUpvote({{ art.id }}, this)">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-              <polyline points="18 15 12 9 6 15"></polyline>
-            </svg>
-            <span class="upvote-count" id="upvote-{{ art.id }}">{{ art.upvotes }}</span>
-          </button>
+    <h1 class="hero-title">{{ t.landing_hero_title }}</h1>
+    <p class="hero-desc">{{ t.landing_hero_desc }}</p>
 
-          <!-- Article Body -->
-          <div class="article-content">
-            <div class="article-title-row">
-              <a href="/article/{{ art.id }}" class="article-title">{{ art.title }}</a>
-              {% if art.external_url %}
-                <a href="{{ art.external_url }}" target="_blank" rel="noopener" class="external-domain">
-                  <span>({{ art.external_url | replace('https://', '') | replace('http://', '') | truncate(28) }})</span>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                </a>
-              {% endif %}
-            </div>
-
-            {% if art.summary %}
-              <div class="article-summary">{{ art.summary }}</div>
-            {% endif %}
-
-            <div class="article-meta">
-              <span class="meta-author">
-                {% if art.author_avatar %}
-                  <img src="{{ art.author_avatar }}" alt="{{ art.author_name }}" class="meta-avatar">
-                {% endif %}
-                <span>{{ art.author_name }}</span>
-              </span>
-              <span>·</span>
-              <span>{{ art.created_at.strftime('%Y-%m-%d %H:%M') if art.created_at else '' }}</span>
-              <span>·</span>
-              <a href="/article/{{ art.id }}#comments" style="color: inherit; text-decoration: none;">
-                {{ art.comment_count }} {{ t.comments }}
-              </a>
-
-              {% if art.tags %}
-                <span>·</span>
-                {% for tag_item in art.tags.split(',') %}
-                  {% if tag_item.strip() %}
-                    <a href="/?tag={{ tag_item.strip() }}" class="tag-badge">#{{ tag_item.strip() }}</a>
-                  {% endif %}
-                {% endfor %}
-              {% endif %}
-
-              {% if art.linked_langs %}
-                <span class="thread-sync-badge">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  <span>{{ t.post_threads_linked }}</span>
-                </span>
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- Thumbnail if available -->
-          {% if art.image_url %}
-            <img src="{{ art.image_url }}" alt="thumb" class="article-thumb" loading="lazy">
-          {% endif %}
-        </article>
-      {% endfor %}
-    {% else %}
-      <div class="empty-state">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 1rem; color: var(--text-dim);">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
+    <div class="cta-box">
+      <a href="/auth/discord" class="btn btn-primary" style="padding: 0.85rem 2rem; font-size: 1.05rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
         </svg>
-        <p>{{ t.empty_feed }}</p>
-        <div style="margin-top: 1.25rem;">
-          <a href="/write" class="btn btn-primary">{{ t.nav_submit }}</a>
+        <span>{{ t.landing_cta }}</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="section-title-wrap">
+      <h2 class="section-title">Core Community Infrastructure</h2>
+      <p class="section-desc">차세대 디스코드 컴포넌트 아키텍처와 글로벌 개발자 피드</p>
+    </div>
+
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <div class="pillar-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
         </div>
+        <h3 class="pillar-title">GeekNews Tech Feed</h3>
+        <p class="pillar-desc">최신 개발 지식과 기술 뉴스를 마크다운 및 Upvote 시스템으로 공유하는 테크 아티클 플랫폼입니다.</p>
       </div>
-    {% endif %}
-  </main>
+
+      <div class="pillar-card">
+        <div class="pillar-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        </div>
+        <h3 class="pillar-title">Discord Components V2</h3>
+        <p class="pillar-desc">글 작성 시 한국어, 영어, 일본어로 즉시 번역 요약되어 각 언어 개발 채널에 V2 링크 카드로 스레드가 자동 생성됩니다.</p>
+      </div>
+
+      <div class="pillar-card">
+        <div class="pillar-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <h3 class="pillar-title">Real-time Forum Sync</h3>
+        <p class="pillar-desc">웹 포털의 Q&A 질문/답변과 디스코드 서버 내의 3개 국어 포럼 채널이 실시간 양방향으로 동기화됩니다.</p>
+      </div>
+    </div>
+
+    <!-- Live Preview Columns -->
+    <div class="preview-grid">
+      <!-- Articles Preview -->
+      <div class="preview-column">
+        <div class="preview-col-header">
+          <div class="preview-col-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span>{{ t.landing_preview_articles }}</span>
+          </div>
+          <a href="/auth/discord" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">Login to View</a>
+        </div>
+        {% if articles_preview %}
+          {% for a in articles_preview %}
+            <a href="/auth/discord" class="preview-item">
+              <div class="preview-item-title">{{ a.title }}</div>
+              <div class="preview-item-meta">
+                <span>By {{ a.author_name }}</span>
+                <span>·</span>
+                <span>▲ {{ a.upvotes }}</span>
+                <span>·</span>
+                <span>{{ a.created_at.strftime('%m-%d') if a.created_at else '' }}</span>
+              </div>
+            </a>
+          {% endfor %}
+        {% else %}
+          <p style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">No articles published yet.</p>
+        {% endif %}
+      </div>
+
+      <!-- Q&A Preview -->
+      <div class="preview-column">
+        <div class="preview-col-header">
+          <div class="preview-col-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <span>{{ t.landing_preview_qna }}</span>
+          </div>
+          <a href="/auth/discord" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">Login to View</a>
+        </div>
+        {% if qna_preview %}
+          {% for q in qna_preview %}
+            <a href="/auth/discord" class="preview-item">
+              <div class="preview-item-title">{{ q.title }}</div>
+              <div class="preview-item-meta">
+                <span>[{{ q.lang | upper }}]</span>
+                <span>By {{ q.author_name }}</span>
+                <span>·</span>
+                <span>{{ q.created_at.strftime('%m-%d') if q.created_at else '' }}</span>
+              </div>
+            </a>
+          {% endfor %}
+        {% else %}
+          <p style="color: var(--text-dim); font-size: 0.85rem; padding: 1rem 0;">No questions posted yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
 
   <!-- Footer -->
   <footer>
@@ -434,25 +566,6 @@
         dropdown.classList.remove('open');
       }
     });
-
-    async function handleUpvote(articleId, btn) {
-      try {
-        const resp = await fetch('/api/article/' + articleId + '/upvote', { method: 'POST' });
-        if (resp.status === 401) {
-          window.location.href = '/auth/discord';
-          return;
-        }
-        const data = await resp.json();
-        document.getElementById('upvote-' + articleId).innerText = data.upvotes;
-        if (data.voted) {
-          btn.classList.add('voted');
-        } else {
-          btn.classList.remove('voted');
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
   </script>
 </body>
 </html>

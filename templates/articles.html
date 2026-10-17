@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevNetwork - Engineering Articles</title>
+
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <style>
+    :root {
+      --bg-page: #000000;
+      --bg-surface: #0B0E14;
+      --bg-card: #11141A;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --accent-emerald: #10B981;
+      --accent-discord: #5865F2;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .bg-ambient-top {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 1200px;
+      height: 400px;
+      background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), rgba(88, 101, 242, 0.04), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(0, 0, 0, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+    .brand-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    /* Custom Dropdown (Strictly styled, zero glitches) */
+    .custom-dropdown {
+      position: relative !important;
+      display: inline-block !important;
+    }
+    .custom-dropdown-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 0.5rem !important;
+      background: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid var(--border-subtle) !important;
+      color: var(--text-main) !important;
+      padding: 0.45rem 0.85rem !important;
+      border-radius: var(--radius-sm) !important;
+      font-size: 0.85rem !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      outline: none !important;
+      font-family: inherit !important;
+      transition: all 0.2s ease !important;
+    }
+    .custom-dropdown-btn:hover {
+      border-color: var(--border-strong) !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+    .custom-dropdown-menu {
+      display: none !important;
+      position: absolute !important;
+      top: calc(100% + 6px) !important;
+      right: 0 !important;
+      min-width: 175px !important;
+      background: #11141A !important;
+      border: 1px solid var(--border-strong) !important;
+      border-radius: var(--radius-sm) !important;
+      padding: 0.35rem !important;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85) !important;
+      z-index: 9999 !important;
+    }
+    .custom-dropdown.open .custom-dropdown-menu {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .custom-dropdown-item {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 0.55rem 0.75rem !important;
+      border-radius: 5px !important;
+      font-size: 0.825rem !important;
+      color: var(--text-muted) !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+      user-select: none !important;
+    }
+    .custom-dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: var(--text-main) !important;
+    }
+    .custom-dropdown-item.active {
+      color: var(--text-main) !important;
+      font-weight: 600 !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .btn-primary { background: #FFFFFF; color: #000000; }
+    .btn-primary:hover { background: #E2E8F0; transform: translateY(-1px); }
+    .btn-discord { background: #5865F2; color: #FFFFFF; }
+    .btn-discord:hover { background: #4752C4; transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+    .btn-outline:hover {
+      border-color: var(--border-strong);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Feed Subnav */
+    .top-subnav {
+      max-width: 1040px;
+      margin: 1.5rem auto 0;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.75rem;
+    }
+    .feed-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .feed-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .feed-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .feed-tab.active {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Feed Container */
+    .feed-container {
+      max-width: 1040px;
+      margin: 1.25rem auto 5rem;
+      padding: 0 1.5rem;
+    }
+    .article-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.1rem;
+      padding: 1.15rem 1.25rem;
+      margin-bottom: 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .article-item:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .upvote-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      padding: 0.5rem 0.35rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+      font-family: inherit;
+    }
+    .upvote-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.06);
+    }
+    .upvote-btn.voted {
+      color: var(--accent-emerald);
+      border-color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .upvote-count {
+      font-size: 0.825rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+    }
+    .article-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .article-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .article-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-decoration: none;
+      line-height: 1.4;
+      transition: color 0.15s ease;
+    }
+    .article-title:hover {
+      color: #FFFFFF;
+      text-decoration: underline;
+    }
+    .external-domain {
+      font-size: 0.775rem;
+      color: var(--text-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      text-decoration: none;
+    }
+    .article-summary {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 0.65rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .article-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      font-size: 0.775rem;
+      color: var(--text-dim);
+    }
+    .meta-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .meta-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      font-size: 0.725rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tag-badge:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+    .thread-sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.725rem;
+      color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.08);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .article-thumb {
+      width: 100px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      margin-left: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-ambient-top"></div>
+
+  <!-- Header -->
+  <header>
+    <a href="/" class="brand">
+      <img src="/static/logo.png" alt="DN" class="brand-logo">
+      <span class="brand-title">DevNetwork</span>
+      <span class="brand-pill">Tech Hub</span>
+    </a>
+
+    <nav style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
+      <a href="/articles" class="feed-tab active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        <span>{{ t.nav_articles }}</span>
+      </a>
+      <a href="/qna" class="feed-tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span>{{ t.nav_qna }}</span>
+      </a>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="/write" class="btn btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>{{ t.nav_submit }}</span>
+      </a>
+
+      <!-- Custom Language Dropdown -->
+      <div class="custom-dropdown" id="langDropdown">
+        <button class="custom-dropdown-btn" onclick="toggleLangDropdown(event)" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span id="currentLangLabel">
+            {% if lang == 'ko' %}한국어 (Korean)
+            {% elif lang == 'ja' %}日本語 (Japanese)
+            {% else %}English (US)
+            {% endif %}
+          </span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="custom-dropdown-menu" id="langMenu">
+          <div class="custom-dropdown-item {% if lang == 'ko' %}active{% endif %}" onclick="selectLanguage('ko')">
+            <span>한국어 (Korean)</span>
+            {% if lang == 'ko' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
+          </div>
+          <div class="custom-dropdown-item {% if lang == 'en' %}active{% endif %}" onclick="selectLanguage('en')">
+            <span>English (US)</span>
+            {% if lang == 'en' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
+          </div>
+          <div class="custom-dropdown-item {% if lang == 'ja' %}active{% endif %}" onclick="selectLanguage('ja')">
+            <span>日本語 (Japanese)</span>
+            {% if lang == 'ja' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if user %}
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <img src="{{ user.avatar_url }}" alt="avatar" style="width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+          <span style="font-weight: 600; font-size: 0.85rem;">{{ user.username }}</span>
+          <a href="/auth/logout" class="btn btn-outline" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">{{ t.logout }}</a>
+        </div>
+      {% else %}
+        <a href="/auth/discord" class="btn btn-discord"><span>{{ t.login_discord }}</span></a>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Sub Navigation & Filters -->
+  <div class="top-subnav">
+    <div class="feed-tabs">
+      <a href="/articles?sort=latest&lang_filter={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'latest' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>{{ t.feed_tab_latest }}</span>
+      </a>
+      <a href="/articles?sort=popular&lang_filter={{ current_lang_filter }}" class="feed-tab {% if current_sort == 'popular' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        <span>{{ t.feed_tab_popular }}</span>
+      </a>
+    </div>
+
+    <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; gap: 0.4rem; align-items: center;">
+      <a href="/articles?sort={{ current_sort }}&lang_filter=all" style="color: {% if current_lang_filter == 'all' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">ALL</a>
+      <span>·</span>
+      <a href="/articles?sort={{ current_sort }}&lang_filter=ko" style="color: {% if current_lang_filter == 'ko' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">KO</a>
+      <span>·</span>
+      <a href="/articles?sort={{ current_sort }}&lang_filter=en" style="color: {% if current_lang_filter == 'en' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">EN</a>
+      <span>·</span>
+      <a href="/articles?sort={{ current_sort }}&lang_filter=ja" style="color: {% if current_lang_filter == 'ja' %}var(--text-main){% else %}var(--text-dim){% endif %}; text-decoration: none; font-weight: 600;">JA</a>
+    </div>
+  </div>
+
+  <!-- Articles Feed -->
+  <main class="feed-container">
+    {% if articles %}
+      {% for art in articles %}
+        <article class="article-item">
+          <button class="upvote-btn" onclick="handleUpvote({{ art.id }}, this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+            <span class="upvote-count" id="upvote-{{ art.id }}">{{ art.upvotes }}</span>
+          </button>
+
+          <div class="article-content">
+            <div class="article-title-row">
+              <a href="/article/{{ art.id }}" class="article-title">{{ art.title }}</a>
+              {% if art.external_url %}
+                <a href="{{ art.external_url }}" target="_blank" rel="noopener" class="external-domain">
+                  <span>({{ art.external_url | replace('https://', '') | replace('http://', '') | truncate(28) }})</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+              {% endif %}
+            </div>
+
+            {% if art.summary %}
+              <div class="article-summary">{{ art.summary }}</div>
+            {% endif %}
+
+            <div class="article-meta">
+              <span class="meta-author">
+                {% if art.author_avatar %}
+                  <img src="{{ art.author_avatar }}" alt="{{ art.author_name }}" class="meta-avatar">
+                {% endif %}
+                <span>{{ art.author_name }}</span>
+              </span>
+              <span>·</span>
+              <span>{{ art.created_at.strftime('%Y-%m-%d %H:%M') if art.created_at else '' }}</span>
+              <span>·</span>
+              <a href="/article/{{ art.id }}#comments" style="color: inherit; text-decoration: none;">
+                {{ art.comment_count }} {{ t.comments }}
+              </a>
+
+              {% if art.tags %}
+                <span>·</span>
+                {% for tag_item in art.tags.split(',') %}
+                  {% if tag_item.strip() %}
+                    <a href="/articles?tag={{ tag_item.strip() }}" class="tag-badge">#{{ tag_item.strip() }}</a>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+
+              {% if art.linked_langs %}
+                <span class="thread-sync-badge">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>{{ t.post_threads_linked }}</span>
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if art.image_url %}
+            <img src="{{ art.image_url }}" alt="thumb" class="article-thumb" loading="lazy">
+          {% endif %}
+        </article>
+      {% endfor %}
+    {% else %}
+      <div style="text-align: center; padding: 4rem 1.5rem; background: var(--bg-card); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md);">
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">{{ t.empty_feed }}</p>
+        <a href="/write" class="btn btn-primary">{{ t.nav_submit }}</a>
+      </div>
+    {% endif %}
+  </main>
+
+  <footer>
+    <p>© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture.</p>
+  </footer>
+
+  <script>
+    function toggleLangDropdown(event) {
+      if (event) event.stopPropagation();
+      const dropdown = document.getElementById('langDropdown');
+      if (dropdown) dropdown.classList.toggle('open');
+    }
+
+    function selectLanguage(lang) {
+      window.location.href = '/articles?lang=' + lang;
+    }
+
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('langDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+      }
+    });
+
+    async function handleUpvote(articleId, btn) {
+      try {
+        const resp = await fetch('/api/article/' + articleId + '/upvote', { method: 'POST' });
+        if (resp.status === 401) {
+          window.location.href = '/auth/discord';
+          return;
+        }
+        const data = await resp.json();
+        document.getElementById('upvote-' + articleId).innerText = data.upvotes;
+        if (data.voted) {
+          btn.classList.add('voted');
+        } else {
+          btn.classList.remove('voted');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  </script>
+</body>
+</html>
