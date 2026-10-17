@@ -133,44 +133,95 @@ header {
   gap: 1rem;
 }
 
-.lang-selector-wrapper {
+/* Custom Dropdown (No ugly native white popup) */
+.custom-dropdown {
   position: relative;
-  display: flex;
+  display: inline-block;
+}
+
+.custom-dropdown-btn {
+  display: inline-flex;
   align-items: center;
-}
-
-.lang-icon {
-  position: absolute;
-  left: 0.75rem;
-  pointer-events: none;
-  color: var(--text-dim);
-}
-
-.lang-selector {
-  appearance: none;
+  gap: 0.6rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
-  padding: 0.45rem 1.8rem 0.45rem 2.2rem;
+  padding: 0.45rem 0.85rem;
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  outline: none;
   transition: all 0.2s ease;
   font-family: inherit;
+  outline: none;
 }
 
-.lang-selector:hover {
+.custom-dropdown-btn:hover {
   border-color: var(--border-strong);
   background: rgba(255, 255, 255, 0.07);
 }
 
-.lang-chevron {
-  position: absolute;
-  right: 0.65rem;
-  pointer-events: none;
+.custom-dropdown-btn .chevron-icon {
   color: var(--text-dim);
+  transition: transform 0.2s ease;
+}
+
+.custom-dropdown.open .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.custom-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 175px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  backdrop-filter: blur(16px);
+}
+
+.custom-dropdown.open .custom-dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.custom-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.custom-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.custom-dropdown-item.active {
+  color: var(--text-main);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.custom-dropdown-item svg {
+  color: var(--accent-emerald);
 }
 
 .btn {
@@ -499,21 +550,44 @@ footer {
     </a>
 
     <div class="nav-actions">
-      <!-- Language Selector -->
-      <div class="lang-selector-wrapper">
-        <svg class="lang-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="2" y1="12" x2="22" y2="12"></line>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-        </svg>
-        <select class="lang-selector" id="langSelect" onchange="changeLanguage(this.value)">
-          <option value="en" {% if lang == 'en' %}selected{% endif %}>English (US)</option>
-          <option value="ko" {% if lang == 'ko' %}selected{% endif %}>한국어 (Korean)</option>
-          <option value="ja" {% if lang == 'ja' %}selected{% endif %}>日本語 (Japanese)</option>
-        </select>
-        <svg class="lang-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
+      <!-- Custom Language Dropdown -->
+      <div class="custom-dropdown" id="langDropdown">
+        <button class="custom-dropdown-btn" onclick="toggleLangDropdown(event)" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span id="currentLangLabel">
+            {% if lang == 'ko' %}한국어 (Korean)
+            {% elif lang == 'ja' %}日本語 (Japanese)
+            {% else %}English (US)
+            {% endif %}
+          </span>
+          <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="custom-dropdown-menu" id="langMenu">
+          <div class="custom-dropdown-item {% if lang == 'en' %}active{% endif %}" onclick="selectLanguage('en')">
+            <span>English (US)</span>
+            {% if lang == 'en' %}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            {% endif %}
+          </div>
+          <div class="custom-dropdown-item {% if lang == 'ko' %}active{% endif %}" onclick="selectLanguage('ko')">
+            <span>한국어 (Korean)</span>
+            {% if lang == 'ko' %}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            {% endif %}
+          </div>
+          <div class="custom-dropdown-item {% if lang == 'ja' %}active{% endif %}" onclick="selectLanguage('ja')">
+            <span>日本語 (Japanese)</span>
+            {% if lang == 'ja' %}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            {% endif %}
+          </div>
+        </div>
       </div>
 
       {% if user %}
@@ -764,6 +838,25 @@ footer {
   </footer>
 
   <script>
+    function toggleLangDropdown(event) {
+      if (event) event.stopPropagation();
+      const dropdown = document.getElementById('langDropdown');
+      if (dropdown) {
+        dropdown.classList.toggle('open');
+      }
+    }
+
+    function selectLanguage(lang) {
+      window.location.href = '/?lang=' + lang;
+    }
+
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('langDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+      }
+    });
+
     function changeLanguage(lang) {
       window.location.href = '/?lang=' + lang;
     }
