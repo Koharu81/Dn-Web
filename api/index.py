@@ -1,8 +1,9 @@
 import os
 import aiohttp
+import asyncpg
 from typing import Optional
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -15,15 +16,6 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-@app.get("/static/style.css")
-@app.get("/style.css")
-async def get_style_css():
-    css_file = os.path.join(STATIC_DIR, "style.css")
-    if os.path.exists(css_file):
-        with open(css_file, "r", encoding="utf-8") as f:
-            return Response(content=f.read(), media_type="text/css")
-    return Response(content="", media_type="text/css")
-
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 DISCORD_BOT_TOKEN = os.getenv("DN_DISCORD_BOT_TOKEN", "")
@@ -31,6 +23,7 @@ DISCORD_CLIENT_ID = os.getenv("DN_CLIENT_ID", "")
 DISCORD_CLIENT_SECRET = os.getenv("DN_CLIENT_SECRET", "")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_Zla3NzLDfK6M@ep-odd-lake-b58efh05-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require")
 
 GUILD_ID = 1552469048099471390
 ROLE_IDS = {
@@ -39,7 +32,62 @@ ROLE_IDS = {
     "ja": 1555128606513168447  # 日本語
 }
 
+# --- Database Helpers ---
+async def db_get_user_lang(user_id: int) -> Optional[str]:
+    if not DATABASE_URL:
+        return None
+    try:
+        conn = await asyncpg.connect(DATABASE_URL)
+        row = await conn.fetchrow("SELECT lang FROM user_languages WHERE user_id = $1", int(user_id))
+        await conn.close()
+        return row["lang"] if row else None
+    except Exception:
+        return None
+
+async def db_set_user_lang(user_id: int, lang: str):
+    if not DATABASE_URL:
+        return
+    try:
+        conn = await asyncpg.connect(DATABASE_URL)
+        await conn.execute("""
+            INSERT INTO user_languages (user_id, lang, updated_at)
+            VALUES ($1, $2, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id) DO UPDATE SET lang = $2, updated_at = CURRENT_TIMESTAMP
+        """, int(user_id), lang)
+        await conn.close()
+    except Exception:
+        pass
+
+# --- Translations (Clean, Zero Emojis) ---
 TRANSLATIONS = {
+    "en": {
+        "login_discord": "Login with Discord",
+        "pill_text": "DevNetwork Global Engineering Portal",
+        "hero_title": "Next-Gen Engineering Hub\nfor Global Developers",
+        "hero_desc": "Connecting developers worldwide across English, Korean, and Japanese. Built on strict Discord Components V2 specifications and enterprise GitHub automation infrastructure.",
+        "switch_role_lang": "Change Language Role",
+        "modal_title": "Select Primary Community Language",
+        "modal_desc": "Choose your primary language for the DevNetwork community. Your Discord server role will be updated instantly.",
+        "close": "Close",
+        "f001_title": "Real-time Message Translation",
+        "f001_desc": "Instant bidirectional AI translation between English, Korean, and Japanese with context menu support.",
+        "f004_title": "Tech Dictionary",
+        "f004_desc": "Real-time DuckDuckGo search combined with AI to deliver concise 3-language technical definitions and snippets.",
+        "f017_title": "Global News Router",
+        "f017_desc": "Curated RSS feeds from Hacker News, GeekNews, and Zenn translated and routed to dedicated language channels.",
+        "f032_title": "Code Auto Formatter",
+        "f032_desc": "Auto-detect and reformat messy code snippets with Black (Python) and Prettier style, including Diff inspection.",
+        "f091_title": "Package Version Inspector",
+        "f091_desc": "Instant lookup of latest stable versions, licenses, and weekly downloads for npm, pip, cargo, and go modules.",
+        "f096_title": "Base64 Encoder / Decoder",
+        "f096_desc": "Seamless two-way Base64 encoding and decoding with one-tap clipboard copy blocks.",
+        "f098_title": "DNS & Domain Lookup",
+        "f098_desc": "Live DNS record verification (A, CNAME, MX, NS) and GeoIP hosting infrastructure diagnostics.",
+        "f120_title": "HTTP Request Tester",
+        "f120_desc": "Direct lightweight HTTP GET/POST simulation from the bot server to inspect headers and response bodies.",
+        "f126_title": "GitHub Repository Bridge",
+        "f126_desc": "Dedicated forum threads with persistent toggle panels, member invitations, and automated weekly security audits."
+    },
     "ko": {
         "login_discord": "디스코드 로그인",
         "pill_text": "DevNetwork 글로벌 개발자 포털 & 봇 관제 센터",
@@ -59,7 +107,7 @@ TRANSLATIONS = {
         "f032_desc": "들여쓰기가 깨진 코드를 감지하여 Black(Python) 및 Prettier 스타일로 완벽하게 재정렬하고 Diff를 비교합니다.",
         "f091_title": "패키지 버전 조회",
         "f091_desc": "npm, pip, cargo, go 생태계 라이브러리의 최신 안정화 버전, 라이선스, 다운로드 지표를 실시간 검사합니다.",
-        "f096_title": "Base64 인코더/디코더",
+        "f096_title": "Base64 인코더 / 디코더",
         "f096_desc": "텍스트 및 데이터 스니펫을 원클릭으로 Base64 상호 변환하고 클립보드 복사 블록을 지원합니다.",
         "f098_title": "DNS & WHOIS 조회",
         "f098_desc": "글로벌 도메인의 A, CNAME, MX 레코드와 네임서버 전파 상태 및 GeoIP 인프라 위치를 진단합니다.",
@@ -67,34 +115,6 @@ TRANSLATIONS = {
         "f120_desc": "봇 서버에서 직접 엔드포인트로 경량 HTTP GET/POST 테스트 요청을 전송하여 상태 코드와 헤더를 점검합니다.",
         "f126_title": "GitHub 저장소 포럼 연동",
         "f126_desc": "국가별 전용 포럼 포스트 생성, 실시간 알림 토글 패널 제어 및 1주일 주기 정기 보안 리포트를 발송합니다."
-    },
-    "en": {
-        "login_discord": "Login with Discord",
-        "pill_text": "DevNetwork Global Engineering Portal & Sentinel",
-        "hero_title": "Next-Gen Engineering Hub\nfor Global Developers",
-        "hero_desc": "Connecting developers worldwide across Korean, English, and Japanese. Built on strict Discord Components V2 specifications and enterprise GitHub infrastructure.",
-        "switch_role_lang": "Change Language Role",
-        "modal_title": "Select Your Primary Language",
-        "modal_desc": "Choose your primary language for the DevNetwork community. Your Discord server role will be updated instantly.",
-        "close": "Close",
-        "f001_title": "Real-time Message Translation",
-        "f001_desc": "Instant bidirectional AI translation between Korean, English, and Japanese with context menu support.",
-        "f004_title": "Tech Dictionary",
-        "f004_desc": "Real-time DuckDuckGo search combined with AI to deliver concise 3-language technical definitions and snippets.",
-        "f017_title": "Global News Router",
-        "f017_desc": "Curated RSS feeds from Hacker News, GeekNews, and Zenn translated and routed to dedicated language channels.",
-        "f032_title": "Code Auto Formatter",
-        "f032_desc": "Auto-detect and reformat messy code snippets with Black (Python) and Prettier style, including Diff inspection.",
-        "f091_title": "Package Version Inspector",
-        "f091_desc": "Instant lookup of latest stable versions, licenses, and weekly downloads for npm, pip, cargo, and go modules.",
-        "f096_title": "Base64 Encoder/Decoder",
-        "f096_desc": "Seamless two-way Base64 encoding/decoding with one-tap clipboard copy blocks.",
-        "f098_title": "DNS & Domain Lookup",
-        "f098_desc": "Live DNS record verification (A, CNAME, MX, NS) and GeoIP hosting infrastructure diagnostics.",
-        "f120_title": "HTTP Request Tester",
-        "f120_desc": "Direct lightweight HTTP GET/POST simulation from the bot server to inspect headers and response bodies.",
-        "f126_title": "GitHub Repository Bridge",
-        "f126_desc": "Dedicated forum threads with persistent toggle panels, member invitations, and automated weekly security audits."
     },
     "ja": {
         "login_discord": "Discordでログイン",
@@ -115,10 +135,10 @@ TRANSLATIONS = {
         "f032_desc": "崩れたインデントを検知し、Black(Python)やPrettier形式で綺麗に再整列。差分(Diff)比較も可能。",
         "f091_title": "パッケージバージョン照会",
         "f091_desc": "npm、pip、cargo、go各エコシステムの最新安定バージョン、ライセンス、ダウンロード数を即座に確認。",
-        "f096_title": "Base64 エンコーダー/デコーダー",
+        "f096_title": "Base64 エンコーダー / デコーダー",
         "f096_desc": "テキストやデータをBase64へ即座に相互変換し、ワンタップコピー用ブロックを提供。",
         "f098_title": "DNS＆ドメイン照会",
-        "f098_desc": "A、CNAME、MX、NSレコードの伝播状況およびホスティングインフラのGeoIP詳細を診断。",
+        "f098_desc": "A、CNAME、MX、NSレコードの伝播状況およびホ스ティングインフラのGeoIP詳細を診断。",
         "f120_title": "HTTPリクエスト模擬テスト",
         "f120_desc": "Botサーバーから対象APIエンドポイントへ直接テストリクエストを送信し、ステータスコードを診断。",
         "f126_title": "GitHubリポジトリ連動",
@@ -126,17 +146,40 @@ TRANSLATIONS = {
     }
 }
 
+# --- Static Asset Direct Route Fallbacks ---
+@app.get("/static/style.css")
+@app.get("/style.css")
+async def get_style_css():
+    css_file = os.path.join(STATIC_DIR, "style.css")
+    if os.path.exists(css_file):
+        with open(css_file, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="text/css")
+    return Response(content="", media_type="text/css")
+
+@app.get("/static/{filename}")
+async def get_static_asset(filename: str):
+    file_path = os.path.join(STATIC_DIR, filename)
+    if os.path.exists(file_path):
+        media_type = "image/png" if filename.endswith(".png") else "application/octet-stream"
+        return FileResponse(file_path, media_type=media_type)
+    raise HTTPException(status_code=404, detail="File not found")
+
+# --- App Routes ---
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    lang = request.query_params.get("lang")
+    query_lang = request.query_params.get("lang")
     user_session = request.cookies.get("dn_user_id")
 
     user_info = None
     show_modal = False
+    active_lang = query_lang
 
     if user_session:
         user_id = int(user_session)
-        saved_lang = request.cookies.get("dn_user_lang")
+        db_lang = await db_get_user_lang(user_id)
+        cookie_lang = request.cookies.get("dn_user_lang")
+        saved_lang = db_lang or cookie_lang
+
         username = request.cookies.get("dn_username", "Developer")
         avatar = request.cookies.get("dn_avatar", "https://cdn.discordapp.com/embed/avatars/0.png")
 
@@ -147,25 +190,26 @@ async def home(request: Request):
             "lang": saved_lang
         }
 
-        if not lang and saved_lang:
-            lang = saved_lang
-        elif not saved_lang:
+        if not active_lang:
+            active_lang = saved_lang
+        if not saved_lang:
             show_modal = True
 
-    if not lang or lang not in TRANSLATIONS:
-        lang = "ko"
+    # 기본 언어는 영어 (English)
+    if not active_lang or active_lang not in TRANSLATIONS:
+        active_lang = "en"
 
     response = templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
-            "lang": lang,
+            "lang": active_lang,
             "user": user_info,
             "show_lang_modal": show_modal,
-            "t": TRANSLATIONS[lang]
+            "t": TRANSLATIONS[active_lang]
         }
     )
-    response.set_cookie("dn_lang", lang, max_age=86400 * 30)
+    response.set_cookie("dn_lang", active_lang, max_age=86400 * 30)
     return response
 
 @app.get("/auth/discord")
@@ -226,13 +270,20 @@ async def discord_callback(code: Optional[str] = None):
                             detected_lang = l_code
                             break
 
-    target_lang = detected_lang or "ko"
+    # DB에 저장된 언어 확인 및 동기화
+    db_lang = await db_get_user_lang(user_id)
+    final_lang = detected_lang or db_lang
+
+    if final_lang:
+        await db_set_user_lang(user_id, final_lang)
+
+    target_lang = final_lang or "en"
     response = RedirectResponse(f"/?lang={target_lang}")
     response.set_cookie("dn_user_id", str(user_id), max_age=86400 * 7)
     response.set_cookie("dn_username", username, max_age=86400 * 7)
     response.set_cookie("dn_avatar", avatar_url, max_age=86400 * 7)
-    if detected_lang:
-        response.set_cookie("dn_user_lang", detected_lang, max_age=86400 * 30)
+    if final_lang:
+        response.set_cookie("dn_user_lang", final_lang, max_age=86400 * 30)
     response.set_cookie("dn_lang", target_lang, max_age=86400 * 30)
     return response
 
@@ -247,6 +298,8 @@ async def update_user_language(request: Request):
     new_lang = body.get("lang")
     if new_lang not in ROLE_IDS:
         raise HTTPException(status_code=400, detail="Invalid language code")
+
+    await db_set_user_lang(user_id, new_lang)
 
     if DISCORD_BOT_TOKEN:
         bot_headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}

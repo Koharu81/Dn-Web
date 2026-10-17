@@ -4,25 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DevNetwork ⁝ Global Developer Community</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png">
   <link rel="stylesheet" href="/static/style.css">
   <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg-primary: #07090e;
-  --bg-secondary: #0e121c;
-  --bg-card: rgba(18, 24, 38, 0.7);
-  --bg-card-hover: rgba(26, 34, 54, 0.85);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(88, 101, 242, 0.3);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-blue: #5865F2;
-  --accent-cyan: #00F0FF;
-  --accent-purple: #8957E5;
+  --bg-base: #08090D;
+  --bg-surface: #0E1118;
+  --bg-card: rgba(16, 20, 30, 0.7);
+  --bg-card-hover: rgba(24, 30, 46, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-accent: rgba(99, 102, 241, 0.4);
+  
+  --text-main: #FFFFFF;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
+  
+  --accent-indigo: #6366F1;
+  --accent-indigo-hover: #4F46E5;
+  --accent-cyan: #06B6D4;
   --accent-emerald: #10B981;
-  --accent-rose: #F43F5E;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
 }
 
 * {
@@ -31,50 +40,56 @@
   box-sizing: border-box;
 }
 
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-main);
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Background Gradients */
-.glow-orb-1 {
-  position: fixed;
-  top: -150px;
-  left: -100px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(88, 101, 242, 0.2) 0%, transparent 70%);
-  filter: blur(80px);
+.bg-ambient-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1200px;
+  height: 480px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.04) 40%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
 
-.glow-orb-2 {
-  position: fixed;
-  bottom: -150px;
-  right: -100px;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(0, 240, 255, 0.12) 0%, transparent 70%);
-  filter: blur(100px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Header & Nav */
 header {
   position: sticky;
   top: 0;
   z-index: 50;
   backdrop-filter: blur(20px);
-  background: rgba(7, 9, 14, 0.75);
-  border-bottom: 1px solid var(--border-color);
-  padding: 1rem 2rem;
+  background: rgba(8, 9, 13, 0.82);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.9rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,22 +98,33 @@ header {
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   text-decoration: none;
-  color: var(--text-primary);
-  font-weight: 800;
-  font-size: 1.25rem;
+  color: var(--text-main);
+}
+
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+}
+
+.brand-title {
+  font-weight: 700;
+  font-size: 1.15rem;
   letter-spacing: -0.02em;
 }
 
-.brand-badge {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+.brand-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
 }
 
 .nav-actions {
@@ -107,164 +133,207 @@ header {
   gap: 1rem;
 }
 
+.lang-selector-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lang-icon {
+  position: absolute;
+  left: 0.75rem;
+  pointer-events: none;
+  color: var(--text-dim);
+}
+
 .lang-selector {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 0.45rem 1.8rem 0.45rem 2.2rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   outline: none;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .lang-selector:hover {
-  border-color: var(--accent-blue);
-  background: rgba(88, 101, 242, 0.1);
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.lang-chevron {
+  position: absolute;
+  right: 0.65rem;
+  pointer-events: none;
+  color: var(--text-dim);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.55rem 1.25rem;
-  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   text-decoration: none;
   cursor: pointer;
   border: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-blue), #4752c4);
-  color: white;
-  box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
+  background: #FFFFFF;
+  color: #000000;
 }
 
 .btn-primary:hover {
+  background: #E2E8F0;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
 }
 
-.btn-github {
-  background: #24292e;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
+.btn-discord {
+  background: #5865F2;
+  color: #FFFFFF;
 }
 
-.btn-github:hover {
-  background: #2f363d;
-  border-color: rgba(255, 255, 255, 0.3);
+.btn-discord:hover {
+  background: #4752C4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
 }
 
 .btn-outline {
   background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
 }
 
 .btn-outline:hover {
-  border-color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-/* Hero Section */
 .hero {
   position: relative;
   z-index: 10;
-  padding: 5rem 2rem 3rem;
-  max-width: 1200px;
+  padding: 3.5rem 2rem 2.5rem;
+  max-width: 1080px;
   margin: 0 auto;
   text-align: center;
+}
+
+.banner-container {
+  max-width: 580px;
+  margin: 0 auto 2rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  background: #000;
+}
+
+.banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .hero-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 1rem;
-  border-radius: 9999px;
-  background: rgba(88, 101, 242, 0.12);
-  border: 1px solid rgba(88, 101, 242, 0.3);
-  color: var(--accent-cyan);
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.825rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+}
+
+.hero-pill-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 8px var(--accent-emerald);
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 2.75rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  margin-bottom: 1.5rem;
-  background: linear-gradient(180deg, #FFFFFF 30%, #94a3b8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+  margin-bottom: 1.25rem;
+  color: var(--text-main);
 }
 
 .hero-desc {
-  font-size: 1.15rem;
-  color: var(--text-secondary);
-  max-width: 680px;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 640px;
   margin: 0 auto 2.5rem;
+  line-height: 1.7;
 }
 
-/* User Status Bar */
-.user-panel {
-  max-width: 800px;
+.user-strip {
+  max-width: 720px;
   margin: 0 auto 3rem;
   background: var(--bg-card);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 1.25rem 2rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-.user-info {
+.user-profile {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
 .user-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid var(--accent-blue);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.user-details {
+  text-align: left;
 }
 
 .user-name {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 
-.user-role-badge {
-  display: inline-block;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--accent-emerald);
+.user-role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  margin-top: 0.2rem;
+  color: var(--accent-emerald);
+  font-weight: 600;
+  margin-top: 0.15rem;
 }
 
-/* Grid of features */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
+  gap: 1.25rem;
+  max-width: 1100px;
   margin: 0 auto 5rem;
   padding: 0 2rem;
   position: relative;
@@ -273,58 +342,70 @@ header {
 
 .card {
   background: var(--bg-card);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 1.75rem;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-glow);
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
   background: var(--bg-card-hover);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-.card-icon {
-  font-size: 1.8rem;
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 1rem;
 }
 
-.card-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
+.card-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
 }
 
-.card-cmd {
+.card-cmd-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-  color: var(--accent-cyan);
-  display: inline-block;
-  margin-bottom: 0.75rem;
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+  letter-spacing: -0.01em;
 }
 
 .card-desc {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
   flex-grow: 1;
 }
 
-/* Language Switcher Modal */
-.modal-overlay {
+.modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -332,86 +413,121 @@ header {
   padding: 1.5rem;
 }
 
-.modal-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  max-width: 480px;
+.modal-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  max-width: 440px;
   width: 100%;
   padding: 2rem;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
 }
 
-.lang-btn-list {
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.modal-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.lang-option-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin: 1.5rem 0;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
 }
 
-.lang-btn {
+.lang-option-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
   font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
-.lang-btn:hover {
-  background: rgba(88, 101, 242, 0.15);
-  border-color: var(--accent-blue);
-  transform: translateX(4px);
+.lang-option-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-strong);
+  transform: translateX(3px);
 }
 
 footer {
-  border-top: 1px solid var(--border-color);
-  padding: 2.5rem 2rem;
+  border-top: 1px solid var(--border-subtle);
+  padding: 2rem;
   text-align: center;
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-size: 0.825rem;
 }
 
+@media (max-width: 768px) {
+  header {
+    padding: 0.9rem 1.25rem;
+  }
+  .hero-title {
+    font-size: 2.25rem;
+  }
+  .features-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1.25rem;
+  }
+}
   </style>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
 </head>
 <body>
-  <div class="glow-orb-1"></div>
-  <div class="glow-orb-2"></div>
+  <div class="bg-ambient-top"></div>
 
   <!-- Header -->
   <header>
     <a href="/" class="brand">
-      <span>🌐 DevNetwork</span>
-      <span class="brand-badge">Global IT</span>
+      <img src="/static/logo.png" alt="DN" class="brand-logo">
+      <span class="brand-title">DevNetwork</span>
+      <span class="brand-pill">Global IT</span>
     </a>
 
     <div class="nav-actions">
-      <!-- Language Dropdown -->
-      <select class="lang-selector" id="langSelect" onchange="changeLanguage(this.value)">
-        <option value="ko" {% if lang == 'ko' %}selected{% endif %}>🇰🇷 한국어</option>
-        <option value="en" {% if lang == 'en' %}selected{% endif %}>🇺🇸 English</option>
-        <option value="ja" {% if lang == 'ja' %}selected{% endif %}>🇯🇵 日本語</option>
-      </select>
+      <!-- Language Selector -->
+      <div class="lang-selector-wrapper">
+        <svg class="lang-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <select class="lang-selector" id="langSelect" onchange="changeLanguage(this.value)">
+          <option value="en" {% if lang == 'en' %}selected{% endif %}>English (US)</option>
+          <option value="ko" {% if lang == 'ko' %}selected{% endif %}>한국어 (Korean)</option>
+          <option value="ja" {% if lang == 'ja' %}selected{% endif %}>日本語 (Japanese)</option>
+        </select>
+        <svg class="lang-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
 
       {% if user %}
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <img src="{{ user.avatar_url }}" alt="avatar" style="width: 32px; height: 32px; border-radius: 50%;">
-          <span style="font-weight: 600; font-size: 0.9rem;">{{ user.username }}</span>
-          <a href="/auth/logout" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">로그아웃</a>
+          <img src="{{ user.avatar_url }}" alt="avatar" style="width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+          <span style="font-weight: 600; font-size: 0.875rem;">{{ user.username }}</span>
+          <a href="/auth/logout" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Logout</a>
         </div>
       {% else %}
-        <a href="/auth/discord" class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <a href="/auth/discord" class="btn btn-discord">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
           </svg>
-          <span id="nav-login-btn">{{ t.login_discord }}</span>
+          <span>{{ t.login_discord }}</span>
         </a>
       {% endif %}
     </div>
@@ -419,24 +535,36 @@ footer {
 
   <!-- Hero Section -->
   <section class="hero">
-    <div class="hero-pill">
-      <span>🚀</span> {{ t.pill_text }}
+    <!-- Official DevNetwork Banner -->
+    <div class="banner-container">
+      <img src="/static/banner.png" alt="DevNetwork Banner" class="banner-img">
     </div>
+
+    <div class="hero-pill">
+      <span class="hero-pill-indicator"></span>
+      <span>{{ t.pill_text }}</span>
+    </div>
+
     <h1 class="hero-title">{{ t.hero_title }}</h1>
     <p class="hero-desc">{{ t.hero_desc }}</p>
 
     {% if user %}
-      <div class="user-panel">
-        <div class="user-info">
+      <div class="user-strip">
+        <div class="user-profile">
           <img src="{{ user.avatar_url }}" alt="avatar" class="user-avatar">
-          <div style="text-align: left;">
+          <div class="user-details">
             <div class="user-name">{{ user.username }}</div>
-            <div class="user-role-badge">
-              {% if user.lang == 'ko' %}🇰🇷 한국어 커뮤니티 역할
-              {% elif user.lang == 'en' %}🇺🇸 English Community Role
-              {% elif user.lang == 'ja' %}🇯🇵 日本語コミュニティロール
-              {% else %}⚠️ 언어 미지정 (아래에서 설정)
-              {% endif %}
+            <div class="user-role-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>
+                {% if user.lang == 'ko' %}Korean Role Assigned
+                {% elif user.lang == 'en' %}English Role Assigned
+                {% elif user.lang == 'ja' %}Japanese Role Assigned
+                {% else %}Language Not Configured
+                {% endif %}
+              </span>
             </div>
           </div>
         </div>
@@ -447,109 +575,192 @@ footer {
     {% endif %}
   </section>
 
-  <!-- Feature Grid -->
+  <!-- Features Grid -->
   <main class="features-grid">
-    <!-- 001 -->
+    <!-- 001 Translate -->
     <div class="card">
-      <div class="card-icon">🌐</div>
-      <div class="card-cmd">/번역 실행</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m5 8 6 6"></path>
+            <path d="m4 14 6-6 2-3"></path>
+            <path d="M2 5h12"></path>
+            <path d="M7 2h1"></path>
+            <path d="m22 22-5-10-5 10"></path>
+            <path d="M14 18h6"></path>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/translate</div>
+      </div>
       <div class="card-title">{{ t.f001_title }}</div>
       <div class="card-desc">{{ t.f001_desc }}</div>
     </div>
 
-    <!-- 004 -->
+    <!-- 004 Dictionary -->
     <div class="card">
-      <div class="card-icon">📖</div>
-      <div class="card-cmd">/사전 검색</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+            <path d="M6 6h10"></path>
+            <path d="M6 10h10"></path>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/dictionary</div>
+      </div>
       <div class="card-title">{{ t.f004_title }}</div>
       <div class="card-desc">{{ t.f004_desc }}</div>
     </div>
 
-    <!-- 017 -->
+    <!-- 017 News -->
     <div class="card">
-      <div class="card-icon">📰</div>
-      <div class="card-cmd">/뉴스 채널연동</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path>
+            <path d="M18 14h-8"></path>
+            <path d="M15 18h-5"></path>
+            <path d="M10 6h8v4h-8V6Z"></path>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/news</div>
+      </div>
       <div class="card-title">{{ t.f017_title }}</div>
       <div class="card-desc">{{ t.f017_desc }}</div>
     </div>
 
-    <!-- 032 -->
+    <!-- 032 Formatter -->
     <div class="card">
-      <div class="card-icon">✨</div>
-      <div class="card-cmd">/코드 정렬</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/format</div>
+      </div>
       <div class="card-title">{{ t.f032_title }}</div>
       <div class="card-desc">{{ t.f032_desc }}</div>
     </div>
 
-    <!-- 091 -->
+    <!-- 091 Packages -->
     <div class="card">
-      <div class="card-icon">📦</div>
-      <div class="card-cmd">/패키지 검색</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m7.5 4.27 9 5.15"></path>
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+            <path d="m3.3 7 8.7 5 8.7-5"></path>
+            <path d="M12 22V12"></path>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/package</div>
+      </div>
       <div class="card-title">{{ t.f091_title }}</div>
       <div class="card-desc">{{ t.f091_desc }}</div>
     </div>
 
-    <!-- 096 -->
+    <!-- 096 Base64 -->
     <div class="card">
-      <div class="card-icon">🔐</div>
-      <div class="card-cmd">/도구 베이스64</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/base64</div>
+      </div>
       <div class="card-title">{{ t.f096_title }}</div>
       <div class="card-desc">{{ t.f096_desc }}</div>
     </div>
 
-    <!-- 098 -->
+    <!-- 098 DNS -->
     <div class="card">
-      <div class="card-icon">🔎</div>
-      <div class="card-cmd">/도구 도메인조회</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/dns</div>
+      </div>
       <div class="card-title">{{ t.f098_title }}</div>
       <div class="card-desc">{{ t.f098_desc }}</div>
     </div>
 
-    <!-- 120 -->
+    <!-- 120 HTTP -->
     <div class="card">
-      <div class="card-icon">⚡</div>
-      <div class="card-cmd">/도구 HTTP요청</div>
+      <div class="card-header">
+        <div class="card-icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/http</div>
+      </div>
       <div class="card-title">{{ t.f120_title }}</div>
       <div class="card-desc">{{ t.f120_desc }}</div>
     </div>
 
-    <!-- 126 -->
-    <div class="card" style="border-color: rgba(137, 87, 229, 0.4);">
-      <div class="card-icon">🐙</div>
-      <div class="card-cmd">/깃허브 연동</div>
+    <!-- 126 GitHub -->
+    <div class="card" style="border-color: rgba(99, 102, 241, 0.25);">
+      <div class="card-header">
+        <div class="card-icon-box" style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.3);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+        </div>
+        <div class="card-cmd-badge">/github</div>
+      </div>
       <div class="card-title">{{ t.f126_title }}</div>
       <div class="card-desc">{{ t.f126_desc }}</div>
     </div>
   </main>
 
-  <!-- Modal: Language Selection -->
-  <div class="modal-overlay" id="langModal" style="display: {% if show_lang_modal %}flex{% else %}none{% endif %};">
-    <div class="modal-content">
-      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🌍</div>
-      <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem;">{{ t.modal_title }}</h3>
-      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">{{ t.modal_desc }}</p>
+  <!-- Language Selection Modal -->
+  <div class="modal-backdrop" id="langModal" style="display: {% if show_lang_modal %}flex{% else %}none{% endif %};">
+    <div class="modal-box">
+      <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+      </div>
+      <h3 class="modal-title">{{ t.modal_title }}</h3>
+      <p class="modal-desc">{{ t.modal_desc }}</p>
 
-      <div class="lang-btn-list">
-        <button class="lang-btn" onclick="setUserLanguage('ko')">
-          <span>🇰🇷 한국어 (Korean)</span>
-          <span>선택 ➔</span>
+      <div class="lang-option-list">
+        <button class="lang-option-btn" onclick="setUserLanguage('en')">
+          <span>English (US)</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </button>
-        <button class="lang-btn" onclick="setUserLanguage('en')">
-          <span>🇺🇸 English (US)</span>
-          <span>Select ➔</span>
+        <button class="lang-option-btn" onclick="setUserLanguage('ko')">
+          <span>한국어 (Korean)</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </button>
-        <button class="lang-btn" onclick="setUserLanguage('ja')">
-          <span>🇯🇵 日本語 (Japanese)</span>
-          <span>選択 ➔</span>
+        <button class="lang-option-btn" onclick="setUserLanguage('ja')">
+          <span>日本語 (Japanese)</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </button>
       </div>
 
-      <button class="btn btn-outline" style="width: 100%;" onclick="closeLangModal()">{{ t.close }}</button>
+      <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeLangModal()">{{ t.close }}</button>
     </div>
   </div>
 
   <footer>
-    <p>© 2026 DevNetwork. Powered by Discord Components V2 Architecture & Deep Integration Engine.</p>
+    <p>© 2026 DevNetwork. Enterprise Discord & GitHub Automation Architecture.</p>
   </footer>
 
   <script>
@@ -572,11 +783,7 @@ footer {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lang: lang })
         });
-        if (resp.ok) {
-          window.location.href = '/?lang=' + lang;
-        } else {
-          alert('언어 설정에 실패했습니다.');
-        }
+        window.location.href = '/?lang=' + lang;
       } catch (e) {
         window.location.href = '/?lang=' + lang;
       }

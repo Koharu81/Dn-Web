@@ -1,475 +1,167 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub 저장소 연동 ⁝ {{ repo }}</title>
+  <title>GitHub Repository Integration ⁝ {{ repo }}</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png">
   <link rel="stylesheet" href="/static/style.css">
   <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg-primary: #07090e;
-  --bg-secondary: #0e121c;
-  --bg-card: rgba(18, 24, 38, 0.7);
-  --bg-card-hover: rgba(26, 34, 54, 0.85);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(88, 101, 242, 0.3);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-blue: #5865F2;
-  --accent-cyan: #00F0FF;
-  --accent-purple: #8957E5;
+  --bg-base: #08090D;
+  --bg-surface: #0E1118;
+  --bg-card: rgba(16, 20, 30, 0.7);
+  --bg-card-hover: rgba(24, 30, 46, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text-main: #FFFFFF;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
   --accent-emerald: #10B981;
-  --accent-rose: #F43F5E;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 9999px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: var(--radius-pill); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
 
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-main);
   min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
   line-height: 1.6;
 }
 
-/* Background Gradients */
-.glow-orb-1 {
-  position: fixed;
-  top: -150px;
-  left: -100px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(88, 101, 242, 0.2) 0%, transparent 70%);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.glow-orb-2 {
-  position: fixed;
-  bottom: -150px;
-  right: -100px;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(0, 240, 255, 0.12) 0%, transparent 70%);
-  filter: blur(100px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Header & Nav */
 header {
   position: sticky;
   top: 0;
   z-index: 50;
   backdrop-filter: blur(20px);
-  background: rgba(7, 9, 14, 0.75);
-  border-bottom: 1px solid var(--border-color);
-  padding: 1rem 2rem;
+  background: rgba(8, 9, 13, 0.82);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.9rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  color: var(--text-primary);
-  font-weight: 800;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-}
+.brand { display: flex; align-items: center; gap: 0.85rem; text-decoration: none; color: var(--text-main); }
+.brand-logo { width: 32px; height: 32px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-subtle); }
+.brand-title { font-weight: 700; font-size: 1.15rem; }
+.brand-pill { font-size: 0.72rem; font-weight: 600; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-muted); padding: 0.15rem 0.5rem; border-radius: var(--radius-pill); }
 
-.brand-badge {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.1rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; text-decoration: none; cursor: pointer; border: none; font-family: inherit; }
+.btn-outline { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-main); }
+.btn-outline:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.04); }
+.btn-github { background: #24292e; border: 1px solid rgba(255, 255, 255, 0.15); color: #FFF; }
+.btn-github:hover { background: #2f363d; border-color: rgba(255, 255, 255, 0.3); }
 
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+.hero { padding: 4rem 2rem 3rem; max-width: 800px; margin: 0 auto; text-align: center; }
+.hero-pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.9rem; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.825rem; font-weight: 500; margin-bottom: 1.25rem; }
+.hero-pill-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-emerald); }
+.hero-title { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.hero-desc { font-size: 1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 2.5rem; }
 
-.lang-selector {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.lang-selector:hover {
-  border-color: var(--accent-blue);
-  background: rgba(88, 101, 242, 0.1);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-decoration: none;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent-blue), #4752c4);
-  color: white;
-  box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
-}
-
-.btn-github {
-  background: #24292e;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
-}
-
-.btn-github:hover {
-  background: #2f363d;
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
-.btn-outline:hover {
-  border-color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Hero Section */
-.hero {
-  position: relative;
-  z-index: 10;
-  padding: 5rem 2rem 3rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.hero-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 1rem;
-  border-radius: 9999px;
-  background: rgba(88, 101, 242, 0.12);
-  border: 1px solid rgba(88, 101, 242, 0.3);
-  color: var(--accent-cyan);
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-}
-
-.hero-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  margin-bottom: 1.5rem;
-  background: linear-gradient(180deg, #FFFFFF 30%, #94a3b8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.hero-desc {
-  font-size: 1.15rem;
-  color: var(--text-secondary);
-  max-width: 680px;
-  margin: 0 auto 2.5rem;
-}
-
-/* User Status Bar */
-.user-panel {
-  max-width: 800px;
-  margin: 0 auto 3rem;
+.connect-box {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 1.25rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2.25rem;
+  text-align: left;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+.box-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.6rem; }
+.box-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
 
-.user-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid var(--accent-blue);
-}
+.webhook-item { margin-bottom: 1rem; }
+.webhook-label { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; margin-bottom: 0.35rem; }
+.webhook-val { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); padding: 0.55rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); color: var(--text-main); word-break: break-all; }
 
-.user-name {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.user-role-badge {
-  display: inline-block;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--accent-emerald);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  margin-top: 0.2rem;
-}
-
-/* Grid of features */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto 5rem;
-  padding: 0 2rem;
-  position: relative;
-  z-index: 10;
-}
-
-.card {
-  background: var(--bg-card);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 1.75rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-glow);
-  background: var(--bg-card-hover);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-}
-
-.card-icon {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
-}
-
-.card-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.card-cmd {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-  color: var(--accent-cyan);
-  display: inline-block;
-  margin-bottom: 0.75rem;
-  border: 1px solid rgba(0, 240, 255, 0.2);
-}
-
-.card-desc {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  flex-grow: 1;
-}
-
-/* Language Switcher Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-}
-
-.modal-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  max-width: 480px;
-  width: 100%;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-}
-
-.lang-btn-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin: 1.5rem 0;
-}
-
-.lang-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.lang-btn:hover {
-  background: rgba(88, 101, 242, 0.15);
-  border-color: var(--accent-blue);
-  transform: translateX(4px);
-}
-
-footer {
-  border-top: 1px solid var(--border-color);
-  padding: 2.5rem 2rem;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
+footer { border-top: 1px solid var(--border-subtle); padding: 2rem; text-align: center; color: var(--text-dim); font-size: 0.825rem; margin-top: 4rem; }
   </style>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐙</text></svg>">
 </head>
 <body>
-  <div class="glow-orb-1"></div>
-  <div class="glow-orb-2"></div>
-
   <header>
     <a href="/" class="brand">
-      <span>🌐 DevNetwork</span>
-      <span class="brand-badge">GitHub Bridge</span>
+      <img src="/static/logo.png" alt="DN" class="brand-logo">
+      <span class="brand-title">DevNetwork</span>
+      <span class="brand-pill">GitHub Bridge</span>
     </a>
     <div class="nav-actions">
-      <a href="/" class="btn btn-outline">홈으로</a>
+      <a href="/" class="btn btn-outline">Back to Home</a>
     </div>
   </header>
 
-  <section class="hero" style="padding-top: 3.5rem;">
+  <section class="hero">
     <div class="hero-pill">
-      <span>🐙</span> GitHub Repository Integration
+      <span class="hero-pill-indicator"></span>
+      <span>GitHub Repository Integration</span>
     </div>
-    <h1 class="hero-title" style="font-size: 2.75rem;">{{ repo }}</h1>
+    <h1 class="hero-title">{{ repo }}</h1>
     <p class="hero-desc">
-      DevNetwork 디스코드 커뮤니티 전용 포럼 포스트와 GitHub 레포지토리를 연동합니다.
+      Seamlessly bind your community repository with DevNetwork dedicated Discord forum channels.
     </p>
 
-    <!-- Main Connect Card -->
-    <div style="max-width: 680px; margin: 0 auto; background: var(--bg-card); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; text-align: left; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
-      <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-        <span>🔗</span> 1-Click GitHub OAuth 연동
-      </h3>
-      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem;">
-        아래 버튼을 클릭하여 GitHub 권한을 승인하면 저장소에 자동으로 실시간 웹훅이 설치되고 이벤트가 바인딩됩니다.
+    <div class="connect-box">
+      <div class="box-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        <span>1-Click GitHub OAuth Integration</span>
+      </div>
+      <p class="box-desc">
+        Authorize GitHub repository access to automatically configure webhooks and stream commit, PR, and issue logs to your Discord thread.
       </p>
 
       {% if github_client_id %}
-        <a href="https://github.com/login/oauth/authorize?client_id={{ github_client_id }}&redirect_uri={{ redirect_uri }}&state={{ token }}&scope=repo,admin:repo_hook" class="btn btn-github" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
-          </svg>
-          GitHub 계정으로 즉시 연동하기
+        <a href="https://github.com/login/oauth/authorize?client_id={{ github_client_id }}&redirect_uri={{ redirect_uri }}&state={{ token }}&scope=repo,admin:repo_hook" class="btn btn-github" style="width: 100%; justify-content: center; padding: 0.8rem;">
+          Connect with GitHub Account
         </a>
       {% else %}
-        <div style="background: rgba(255, 180, 0, 0.1); border: 1px solid rgba(255, 180, 0, 0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-          <p style="color: #fbbf24; font-size: 0.9rem; font-weight: 600;">
-            ℹ️ GitHub OAuth Client ID가 아직 설정되지 않았습니다.
-          </p>
-          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.3rem;">
-            GitHub Developer Settings에서 OAuth App을 생성한 후 <code>.env</code> 파일의 <code>GITHUB_CLIENT_ID</code> 및 <code>GITHUB_CLIENT_SECRET</code>에 값을 입력하시면 1-클릭 연동이 활성화됩니다.
-          </p>
-          <p style="color: var(--accent-cyan); font-size: 0.85rem; margin-top: 0.5rem; font-family: monospace;">
-            Authorization Callback URL: https://dn.koharu.live/github/callback
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">
+            GitHub OAuth credentials configured. You can also configure the manual webhook below.
           </p>
         </div>
       {% endif %}
 
-      <div style="margin: 2rem 0 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;">
-          ⚙️ 수동 Webhook 등록 가이드
-        </h4>
-        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
-          GitHub 저장소 Settings ➔ Webhooks ➔ Add webhook 에서 아래 정보를 입력해주세요:
+      <div style="margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+        <div class="box-title" style="font-size: 1rem;">Manual Webhook Configuration</div>
+        <p class="box-desc" style="font-size: 0.85rem;">
+          In your GitHub repository, navigate to <strong>Settings ➔ Webhooks ➔ Add webhook</strong> and set:
         </p>
 
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <div>
-            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Payload URL</label>
-            <div style="font-family: monospace; background: rgba(0,0,0,0.5); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--accent-cyan);">
-              https://dn.koharu.live/api/webhook/github
-            </div>
-          </div>
+        <div class="webhook-item">
+          <div class="webhook-label">Payload URL</div>
+          <div class="webhook-val">https://dn.koharu.live/api/webhook/github</div>
+        </div>
 
-          <div>
-            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Content type</label>
-            <div style="font-family: monospace; background: rgba(0,0,0,0.5); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-primary);">
-              application/json
-            </div>
-          </div>
+        <div class="webhook-item">
+          <div class="webhook-label">Content type</div>
+          <div class="webhook-val">application/json</div>
+        </div>
 
-          <div>
-            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Which events would you like to trigger this webhook?</label>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); padding: 0.25rem 0;">
-              • Issues, Pull requests, Pushes, Releases, Workflow runs, Branch creation
-            </div>
-          </div>
+        <div class="webhook-item">
+          <div class="webhook-label">Events to trigger</div>
+          <div class="webhook-val">Issues, Pull requests, Pushes, Releases, Workflow runs, Branch creation</div>
         </div>
       </div>
     </div>
   </section>
 
   <footer>
-    <p>© 2026 DevNetwork. GitHub Webhook Sentinel Engine.</p>
+    <p>© 2026 DevNetwork. Automated GitHub Sentinel Engine.</p>
   </footer>
 </body>
 </html>
