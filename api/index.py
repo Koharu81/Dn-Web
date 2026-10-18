@@ -1,6 +1,7 @@
 import os
 import json
 import base64
+import asyncio
 import aiohttp
 import asyncpg
 import markdown
@@ -17,7 +18,8 @@ from .db import (
     db_get_articles, db_get_article, db_create_article, db_save_article_thread,
     db_get_article_threads, db_toggle_upvote, db_get_article_comments, db_add_article_comment,
     db_get_qna_posts, db_get_qna_post, db_create_qna_post, db_update_qna_discord_thread,
-    db_get_qna_answers, db_add_qna_answer, db_upsert_discord_forum_thread
+    db_get_qna_answers, db_add_qna_answer, db_upsert_discord_forum_thread,
+    db_get_github_session, db_get_github_repo_by_name, db_update_github_repo_thread
 )
 from .discord_sync import (
     generate_multilang_summaries, discord_create_article_thread,
@@ -42,9 +44,30 @@ async def clean_lang_query_middleware(request: Request, call_next):
             return response
     return await call_next(request)
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+search_dirs = [
+    BASE_DIR,
+    os.getcwd(),
+    os.path.join(os.getcwd(), "Dn-Web")
+]
+
+TEMPLATES_DIR = None
+for sdir in search_dirs:
+    tdir = os.path.join(sdir, "templates")
+    if os.path.exists(tdir) and os.path.isdir(tdir):
+        TEMPLATES_DIR = tdir
+        break
+if not TEMPLATES_DIR:
+    TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+
+STATIC_DIR = None
+for sdir in search_dirs:
+    stdir = os.path.join(sdir, "static")
+    if os.path.exists(stdir) and os.path.isdir(stdir):
+        STATIC_DIR = stdir
+        break
+if not STATIC_DIR:
+    STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -632,68 +655,86 @@ async def process_uploaded_images(
     return json.dumps(collected[:5])
 
 @app.post("/api/article/create")
-async def create_article(
-    request: Request,
-    title: str = Form(...),
-    content: str = Form(...),
-    external_url: Optional[str] = Form(""),
-    tags: Optional[str] = Form(""),
-    image_url: Optional[str] = Form(""),
-    image_file: Optional[UploadFile] = File(None),
-    image_files: Optional[List[UploadFile]] = File(None)
-):
+async def create_article(request: Request):
     user = get_session_user(request)
     if not user:
-        raise HTTPException(status_code=401, detail="Authentication required")
+        return RedirectResponse(url="/auth/discord", status_code=303)
     
-    final_image_url = await process_uploaded_images(image_files, image_file, image_url)
-    ui_lang = resolve_lang(request, user)
-    
-    # 1. Generate multilang titles and summaries
-    summaries = await generate_multilang_summaries(title, content)
-    primary_summary = summaries.get(ui_lang, {}).get("summary", content[:300])
+    try:
+        form = await request.form()
+        title = str(form.get("title", "")).strip()
+        content = str(form.get("content", "")).strip()
+        external_url = str(form.get("external_url", "")).strip()
+        tags = str(form.get("tags", "")).strip()
+        image_url = str(form.get("image_url", "")).strip()
+        
+        raw_files = form.getlist("image_files")
+        valid_files = [f for f in raw_files if isinstance(f, UploadFile) and f.filename]
+        
+        if not title or not content:
+            raise HTTPException(status_code=400, detail="Title and content are required")
+        
+        final_image_url = await process_uploaded_images(valid_files, None, image_url)
+        ui_lang = resolve_lang(request, user)
+        
+        # 1. Generate multilang titles and summaries
+        try:
+            summaries = await generate_multilang_summaries(title, content)
+            primary_summary = summaries.get(ui_lang, {}).get("summary", content[:300])
+        except Exception as e:
+            print(f"Summary generation warning: {e}")
+            summaries = {}
+            primary_summary = content[:300]
 
-    # 2. Insert into DB
-    article_id = await db_create_article(
-        author_id=user["id"],
-        author_name=user["username"],
-        author_avatar=user["avatar_url"],
-        title=title,
-        content=content,
-        summary=primary_summary,
-        external_url=external_url or "",
-        image_url=final_image_url,
-        tags=tags or "",
-        lang=ui_lang
-    )
-
-    # 3. Create Discord Threads in all 3 language developer channels concurrently
-    thread_tasks = []
-    for l_code in ("ko", "en", "ja"):
-        loc_title = summaries.get(l_code, {}).get("title", title)
-        loc_summary = summaries.get(l_code, {}).get("summary", primary_summary)
-        thread_tasks.append(
-            discord_create_article_thread(
-                lang=l_code,
-                title=loc_title,
-                summary=loc_summary,
-                article_id=article_id,
-                image_url=final_image_url if not final_image_url.startswith("data:") else None
-            )
+        # 2. Insert into DB
+        article_id = await db_create_article(
+            author_id=user["id"],
+            author_name=user["username"],
+            author_avatar=user["avatar_url"],
+            title=title,
+            content=content,
+            summary=primary_summary,
+            external_url=external_url or "",
+            image_url=final_image_url,
+            tags=tags or "",
+            lang=ui_lang
         )
-    
-    results = await asyncio.gather(*thread_tasks, return_exceptions=True)
-    for res in results:
-        if isinstance(res, dict) and res.get("thread_id"):
-            await db_save_article_thread(
-                article_id=article_id,
-                lang=res["lang"],
-                channel_id=res["channel_id"],
-                thread_id=res["thread_id"],
-                message_id=res.get("message_id", "")
-            )
 
-    return RedirectResponse(url=f"/article/{article_id}", status_code=303)
+        # 3. Create Discord Threads in all 3 language developer channels concurrently
+        try:
+            thread_tasks = []
+            for l_code in ("ko", "en", "ja"):
+                loc_title = summaries.get(l_code, {}).get("title", title)
+                loc_summary = summaries.get(l_code, {}).get("summary", primary_summary)
+                thread_tasks.append(
+                    discord_create_article_thread(
+                        lang=l_code,
+                        title=loc_title,
+                        summary=loc_summary,
+                        article_id=article_id,
+                        image_url=final_image_url if not final_image_url.startswith("data:") else None
+                    )
+                )
+            results = await asyncio.gather(*thread_tasks, return_exceptions=True)
+            for res in results:
+                if isinstance(res, dict) and res.get("thread_id"):
+                    await db_save_article_thread(
+                        article_id=article_id,
+                        lang=res["lang"],
+                        channel_id=res["channel_id"],
+                        thread_id=res["thread_id"],
+                        message_id=res.get("message_id", "")
+                    )
+        except Exception as e:
+            print(f"Discord broadcast warning: {e}")
+
+        return RedirectResponse(url=f"/article/{article_id}", status_code=303)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"create_article error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to publish article: {e}")
+
 
 @app.get("/article/{article_id}", response_class=HTMLResponse)
 async def article_detail(request: Request, article_id: int):
@@ -847,47 +888,60 @@ async def new_qna_page(request: Request):
     )
 
 @app.post("/api/qna/create")
-async def create_qna(
-    request: Request,
-    title: str = Form(...),
-    content: str = Form(...),
-    post_lang: str = Form("en"),
-    image_url: Optional[str] = Form(""),
-    image_file: Optional[UploadFile] = File(None),
-    image_files: Optional[List[UploadFile]] = File(None)
-):
+async def create_qna(request: Request):
     user = get_session_user(request)
     if not user:
-        raise HTTPException(status_code=401, detail="Authentication required")
+        return RedirectResponse(url="/auth/discord", status_code=303)
 
-    final_image_url = await process_uploaded_images(image_files, image_file, image_url)
-    forum_channel_id = str(QNA_FORUM_CHANNELS.get(post_lang, QNA_FORUM_CHANNELS["en"]))
+    try:
+        form = await request.form()
+        title = str(form.get("title", "")).strip()
+        content = str(form.get("content", "")).strip()
+        post_lang = str(form.get("post_lang", "ko")).strip() or "ko"
+        image_url = str(form.get("image_url", "")).strip()
+        
+        raw_files = form.getlist("image_files")
+        valid_files = [f for f in raw_files if isinstance(f, UploadFile) and f.filename]
+        
+        if not title or not content:
+            raise HTTPException(status_code=400, detail="Title and content are required")
 
-    # 1. Insert into DB first
-    post_id = await db_create_qna_post(
-        author_id=user["id"],
-        author_name=user["username"],
-        author_avatar=user["avatar_url"],
-        lang=post_lang,
-        title=title,
-        content=content,
-        image_url=final_image_url,
-        discord_channel_id=forum_channel_id,
-        discord_thread_id=""
-    )
+        final_image_url = await process_uploaded_images(valid_files, None, image_url)
+        forum_channel_id = str(QNA_FORUM_CHANNELS.get(post_lang, QNA_FORUM_CHANNELS["en"]))
 
-    # 2. Create Forum Post in Discord
-    thread_id = await discord_create_forum_post(
-        lang=post_lang,
-        title=title,
-        content=content,
-        post_id=post_id,
-        image_url=final_image_url if not final_image_url.startswith("data:") else None
-    )
-    if thread_id:
-        await db_update_qna_discord_thread(post_id, thread_id)
+        # 1. Insert into DB first
+        post_id = await db_create_qna_post(
+            author_id=user["id"],
+            author_name=user["username"],
+            author_avatar=user["avatar_url"],
+            lang=post_lang,
+            title=title,
+            content=content,
+            image_url=final_image_url,
+            discord_channel_id=forum_channel_id,
+            discord_thread_id=""
+        )
 
-    return RedirectResponse(url=f"/qna/{post_id}", status_code=303)
+        # 2. Create Forum Post in Discord
+        try:
+            thread_id = await discord_create_forum_post(
+                lang=post_lang,
+                title=title,
+                content=content,
+                post_id=post_id,
+                image_url=final_image_url if not final_image_url.startswith("data:") else None
+            )
+            if thread_id:
+                await db_update_qna_discord_thread(post_id, thread_id)
+        except Exception as e:
+            print(f"Discord forum sync warning: {e}")
+
+        return RedirectResponse(url=f"/qna/{post_id}", status_code=303)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"create_qna error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to post Q&A question: {e}")
 
 @app.get("/qna/{post_id}", response_class=HTMLResponse)
 async def qna_detail(request: Request, post_id: int):
@@ -1082,3 +1136,270 @@ async def set_user_language(request: Request):
     response.set_cookie(key="dn_user_lang", value=new_lang, max_age=86400*30, httponly=False)
     response.set_cookie(key="dn_lang", value=new_lang, max_age=86400*30, httponly=False)
     return response
+
+
+# ==========================================
+# 4. GITHUB INTEGRATION & OAUTH WEB ROUTES
+# ==========================================
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
+
+@app.get("/github/{token}", response_class=HTMLResponse)
+@app.get("/github/{token}/", response_class=HTMLResponse)
+async def github_connect_page(request: Request, token: str):
+    """봇의 /깃허브 명령어로 생성된 연동 링크 처리"""
+    session = await db_get_github_session(token)
+    repo = session.get("repo", "Repository") if session else "Repository"
+    
+    redirect_uri = f"{APP_BASE_URL}/github/callback"
+    return templates.TemplateResponse(
+        request=request,
+        name="github_connect.html",
+        context={
+            "request": request,
+            "repo": repo,
+            "token": token,
+            "github_client_id": GITHUB_CLIENT_ID,
+            "redirect_uri": redirect_uri,
+            "base_url": APP_BASE_URL
+        }
+    )
+
+@app.get("/github/callback", response_class=HTMLResponse)
+@app.get("/github/callback/", response_class=HTMLResponse)
+async def github_oauth_callback(request: Request, code: Optional[str] = None, state: Optional[str] = None):
+    """GitHub OAuth 콜백 처리"""
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing code or state parameter")
+    
+    session_data = await db_get_github_session(state)
+    repo = session_data.get("repo", "") if session_data else ""
+    channel_id = str(session_data.get("channel_id", "")) if session_data else ""
+    thread_id = str(session_data.get("thread_id", "")) if session_data else ""
+    owner_id = str(session_data.get("owner_id", "")) if session_data else ""
+
+    # 1. Exchange OAuth code for GitHub Access Token
+    token_url = "https://github.com/login/oauth/access_token"
+    payload = {
+        "client_id": GITHUB_CLIENT_ID,
+        "client_secret": GITHUB_CLIENT_SECRET,
+        "code": code,
+        "redirect_uri": f"{APP_BASE_URL}/github/callback"
+    }
+    headers = {"Accept": "application/json"}
+    access_token = ""
+    try:
+        async with aiohttp.ClientSession() as http_sess:
+            async with http_sess.post(token_url, json=payload, headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    access_token = data.get("access_token", "")
+    except Exception as e:
+        print(f"GitHub token exchange error: {e}")
+
+    # 2. If forum thread has not been created yet, CREATE it now on Discord Forum!
+    if (not thread_id or thread_id == "0") and channel_id and DISCORD_BOT_TOKEN:
+        try:
+            async with aiohttp.ClientSession() as http_sess:
+                thread_url = f"https://discord.com/api/v10/channels/{channel_id}/threads"
+                d_headers = {
+                    "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+                    "Content-Type": "application/json"
+                }
+                sep = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                thread_payload = {
+                    "name": f"📦 {repo}",
+                    "auto_archive_duration": 10080,
+                    "message": {
+                        "content": (
+                            f">>> 🐙 **GitHub 저장소 관제 포스트** ⁝ `GITHUB INTEGRATION`\n"
+                            f"> {sep}\n"
+                            f"> 저장소: **{repo}**\n"
+                            f"> 관리자: <@{owner_id}>\n"
+                            f"> 연동 상태: **OAuth 계정 인증 완료 및 관제 시작**\n"
+                            f"> ────────────────────────────────────\n"
+                            f"> ▫️ *DevNetwork GitHub Bridge Sentinel*"
+                        )
+                    }
+                }
+                async with http_sess.post(thread_url, headers=d_headers, json=thread_payload) as t_resp:
+                    if t_resp.status in (200, 201):
+                        t_data = await t_resp.json()
+                        thread_id = str(t_data.get("id", ""))
+                        if thread_id:
+                            await db_update_github_repo_thread(state, int(thread_id))
+                            if owner_id:
+                                try:
+                                    member_url = f"https://discord.com/api/v10/channels/{thread_id}/thread-members/{owner_id}"
+                                    await http_sess.put(member_url, headers=d_headers)
+                                except Exception:
+                                    pass
+        except Exception as e:
+            print(f"Failed to create Discord thread upon OAuth callback: {e}")
+
+    # 3. Auto-create Webhook if access_token and repo are available
+    webhook_success = False
+    if access_token and repo:
+        try:
+            hook_url = f"https://api.github.com/repos/{repo}/hooks"
+            hook_payload = {
+                "name": "web",
+                "active": True,
+                "events": ["push", "pull_request", "issues", "release", "workflow_run"],
+                "config": {
+                    "url": f"{APP_BASE_URL}/api/webhook/github",
+                    "content_type": "json",
+                    "insecure_ssl": "0"
+                }
+            }
+            hook_headers = {
+                "Authorization": f"token {access_token}",
+                "Accept": "application/vnd.github.v3+json",
+                "User-Agent": "DevNetwork-GitHub-Bridge"
+            }
+            async with aiohttp.ClientSession() as http_sess:
+                async with http_sess.post(hook_url, json=hook_payload, headers=hook_headers) as h_resp:
+                    if h_resp.status in (200, 201):
+                        webhook_success = True
+                    else:
+                        print(f"Hook create status: {h_resp.status}")
+        except Exception as e:
+            print(f"Failed to auto-create GitHub webhook: {e}")
+
+    # 4. Notify Discord thread if thread_id exists
+    if thread_id and thread_id != "0" and DISCORD_BOT_TOKEN:
+        try:
+            async with aiohttp.ClientSession() as http_sess:
+                msg_url = f"https://discord.com/api/v10/channels/{thread_id}/messages"
+                d_headers = {
+                    "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+                    "Content-Type": "application/json"
+                }
+                status_text = "자동 웹훅 등록 완료" if webhook_success else "OAuth 인증 완료 (수동 웹훅 추가 필요)"
+                content = (
+                    f">>> 🐙 **GitHub 저장소 연동 성공** ⁝ `GITHUB INTEGRATION`\n"
+                    f"> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"> 저장소: **{repo}**\n"
+                    f"> 연동 상태: **{status_text}**\n"
+                    f"> 이제 커밋, PR, 이슈 등 설정된 이벤트가 이 포스트에 실시간 기록됩니다.\n"
+                    f"> ────────────────────────────────────\n"
+                    f"> ▫️ *DevNetwork GitHub Bridge Sentinel*"
+                )
+                await http_sess.post(msg_url, headers=d_headers, json={"content": content})
+        except Exception as e:
+            print(f"Failed to post to thread: {e}")
+
+    # Render Success Page
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>GitHub 연동 완료 ⁝ DevNetwork</title>
+      <link rel="icon" type="image/png" href="/static/favicon.png">
+      <link rel="stylesheet" href="/static/style.css">
+      <style>
+        body {{ background: #08090D; color: #FFF; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
+        .card {{ background: rgba(16, 20, 30, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2.5rem; max-width: 500px; text-align: center; }}
+        h1 {{ font-size: 1.5rem; margin-bottom: 1rem; color: #10B981; }}
+        p {{ color: #94A3B8; font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.6; }}
+        .btn {{ display: inline-block; background: #5865F2; color: #FFF; padding: 0.65rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; }}
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h1>GitHub 연동 완료</h1>
+        <p><strong>{repo or '지정된'}</strong> 저장소가 DevNetwork 디스코드 서버와 성공적으로 연결되었습니다.<br>디스코드 전용 로그 포스트로 돌아가 활동을 이어가실 수 있습니다.</p>
+        <a href="/" class="btn">DevNetwork 메인으로 이동</a>
+      </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+@app.post("/api/webhook/github")
+async def github_webhook_receiver(request: Request):
+    """GitHub Webhook 수신 엔드포인트"""
+    event = request.headers.get("X-GitHub-Event", "ping")
+    try:
+        payload = await request.json()
+    except Exception:
+        return JSONResponse({"status": "invalid json"}, status_code=400)
+
+    if event == "ping":
+        return JSONResponse({"status": "pong"})
+
+    repo_data = payload.get("repository", {})
+    repo_full_name = repo_data.get("full_name", "")
+    if not repo_full_name:
+        return JSONResponse({"status": "no repo"}, status_code=400)
+
+    session = await db_get_github_repo_by_name(repo_full_name)
+    if not session or not session.get("thread_id"):
+        return JSONResponse({"status": "unlinked repository"})
+
+    thread_id = str(session["thread_id"])
+    sep = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    content = ""
+
+    if event == "push" and session.get("notify_commits", True):
+        pusher = payload.get("pusher", {}).get("name", "Unknown")
+        commits = payload.get("commits", [])
+        ref = payload.get("ref", "").replace("refs/heads/", "")
+        commit_lines = "\n".join([f"• [`{c.get('id', '')[:7]}`] {c.get('message', '').splitlines()[0]} ({c.get('author', {}).get('name', '')})" for c in commits[:5]])
+        content = (
+            f">>> 📝 **New Push to `{ref}`** ⁝ `GITHUB COMMIT`\n"
+            f"> {sep}\n"
+            f"> Pusher: **{pusher}** ({len(commits)} commits)\n"
+            f"> {commit_lines if commit_lines else 'No commit messages'}\n"
+            f"> ▫️ Repository: [{repo_full_name}]({repo_data.get('html_url', '')})"
+        )
+
+    elif event == "pull_request" and session.get("notify_pr", True):
+        action = payload.get("action", "")
+        pr = payload.get("pull_request", {})
+        sender = payload.get("sender", {}).get("login", "")
+        content = (
+            f">>> 🔀 **Pull Request {action.upper()}** ⁝ `GITHUB PR`\n"
+            f"> {sep}\n"
+            f"> #{pr.get('number')}: **{pr.get('title')}**\n"
+            f"> Author: **{sender}** ⁝ Base: `{pr.get('base', {}).get('ref')}` ➔ Head: `{pr.get('head', {}).get('ref')}`\n"
+            f"> ▫️ PR Link: [{repo_full_name}#{pr.get('number')}]({pr.get('html_url')})"
+        )
+
+    elif event == "issues" and session.get("notify_issues", True):
+        action = payload.get("action", "")
+        issue = payload.get("issue", {})
+        sender = payload.get("sender", {}).get("login", "")
+        content = (
+            f">>> 🐛 **Issue {action.upper()}** ⁝ `GITHUB ISSUE`\n"
+            f"> {sep}\n"
+            f"> #{issue.get('number')}: **{issue.get('title')}**\n"
+            f"> Author: **{sender}**\n"
+            f"> ▫️ Issue Link: [{repo_full_name}#{issue.get('number')}]({issue.get('html_url')})"
+        )
+
+    elif event == "release" and session.get("notify_release", True):
+        rel = payload.get("release", {})
+        content = (
+            f">>> 🚀 **New Release: {rel.get('tag_name')}** ⁝ `GITHUB RELEASE`\n"
+            f"> {sep}\n"
+            f"> Title: **{rel.get('name') or rel.get('tag_name')}**\n"
+            f"> ▫️ Release Link: [{repo_full_name}]({rel.get('html_url')})"
+        )
+
+    if content and DISCORD_BOT_TOKEN:
+        try:
+            async with aiohttp.ClientSession() as http_sess:
+                msg_url = f"https://discord.com/api/v10/channels/{thread_id}/messages"
+                d_headers = {
+                    "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+                    "Content-Type": "application/json"
+                }
+                await http_sess.post(msg_url, headers=d_headers, json={"content": content})
+        except Exception as e:
+            print(f"Webhook forward to thread error: {e}")
+
+    return JSONResponse({"status": "received"})
+

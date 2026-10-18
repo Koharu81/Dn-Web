@@ -228,3 +228,36 @@ async def db_upsert_discord_forum_thread(lang: str, channel_id: str, thread_id: 
             """, str(author_id), author_name or "Discord Member", author_avatar or "", lang, name, "(Discussed on Discord Forum)", str(channel_id), str(thread_id), created_at)
     finally:
         await conn.close()
+
+# --- GitHub Repos & Webhook ---
+async def db_get_github_session(token: str) -> Optional[Dict[str, Any]]:
+    conn = await get_db_connection()
+    try:
+        row = await conn.fetchrow("SELECT * FROM github_repos WHERE token = $1", token)
+        if not row:
+            return None
+        data = dict(row)
+        if isinstance(data.get("invited_members"), str):
+            try:
+                data["invited_members"] = json.loads(data["invited_members"])
+            except Exception:
+                pass
+        return data
+    finally:
+        await conn.close()
+
+async def db_get_github_repo_by_name(repo_name: str) -> Optional[Dict[str, Any]]:
+    conn = await get_db_connection()
+    try:
+        row = await conn.fetchrow("SELECT * FROM github_repos WHERE LOWER(repo) = LOWER($1) ORDER BY created_at DESC LIMIT 1", repo_name)
+        return dict(row) if row else None
+    finally:
+        await conn.close()
+
+async def db_update_github_repo_thread(token: str, thread_id: int):
+    conn = await get_db_connection()
+    try:
+        await conn.execute("UPDATE github_repos SET thread_id = $1 WHERE token = $2", int(thread_id), token)
+    finally:
+        await conn.close()
+

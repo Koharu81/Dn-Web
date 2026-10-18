@@ -102,9 +102,18 @@ async def discord_create_article_thread(lang: str, title: str, summary: str, art
                 "ja": "ウェブで全文を読む"
             }.get(lang, "Read Full Article")
             
-            content_text = f"### {title}\n\n{summary}\n\n──────────────────────────────────────\n공유 링크: {article_url}"
+            sep = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            thin = "────────────────────────────────────"
+            summary_clean = "\n> ".join(summary.split("\n"))
+            content_text = (
+                f">>> 📰 **{title}** ⁝ `TECH NEWS`\n"
+                f"> {sep}\n"
+                f"> {summary_clean}\n"
+                f"> {thin}\n"
+                f"> ▫️ **공유 링크**: {article_url}"
+            )
             
-            # Components V2 Payload (Button + Separator)
+            # Components V2 Payload (Button + Action Row)
             v2_components = [
                 {
                     "type": 1, # ACTION_ROW
@@ -166,8 +175,19 @@ async def discord_create_forum_post(lang: str, title: str, content: str, post_id
                 "ja": "DevNetwork Q&Aで確認"
             }.get(lang, "View on Q&A")
             
+            sep = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            thin = "────────────────────────────────────"
+            content_clean = "\n> ".join(content[:1200].split("\n"))
+            container_text = (
+                f">>> 💡 **{title}** ⁝ `Q&A FORUM`\n"
+                f"> {sep}\n"
+                f"> {content_clean}\n"
+                f"> {thin}\n"
+                f"> ▫️ **포럼 동기화 링크**: {qna_url}"
+            )
+
             msg_obj = {
-                "content": f"{content[:1400]}\n\n──────────────────────────────────────\n공유 링크: {qna_url}",
+                "content": container_text,
                 "components": [
                     {
                         "type": 1,
