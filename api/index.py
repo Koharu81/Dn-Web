@@ -1178,6 +1178,22 @@ async def github_oauth_callback(request: Request, code: Optional[str] = None, st
     thread_id = str(session_data.get("thread_id", "")) if session_data else ""
     owner_id = str(session_data.get("owner_id", "")) if session_data else ""
 
+    # Always guarantee channel_id reflects the user's webapp main language setting
+    FORUM_CHANNELS_BY_LANG = {
+        "kr": "1560982212269310064",
+        "ko": "1560982212269310064",
+        "en": "1561002542991810661",
+        "jp": "1561002573140594869",
+        "ja": "1561002573140594869"
+    }
+    if owner_id:
+        try:
+            owner_lang = await db_get_user_lang(int(owner_id))
+            if owner_lang in FORUM_CHANNELS_BY_LANG:
+                channel_id = FORUM_CHANNELS_BY_LANG[owner_lang]
+        except Exception as e:
+            print(f"Error checking owner lang for GitHub channel: {e}")
+
     # 1. Exchange OAuth code for GitHub Access Token
     token_url = "https://github.com/login/oauth/access_token"
     payload = {
